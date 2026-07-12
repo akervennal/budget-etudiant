@@ -102,7 +102,7 @@ input, select { font-family: inherit; }
 .month-pill .caret { color: var(--faint); font-size: 11px; }
 
 /* ---------- Zone de contenu / vues ---------- */
-main { padding: 16px 18px calc(var(--nav-h) + 28px); }
+main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px); }
 .view { display: none; animation: fade 0.18s ease; }
 .view.active { display: block; }
 @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -321,7 +321,7 @@ main { padding: 16px 18px calc(var(--nav-h) + 28px); }
   position: fixed;
   bottom: 0; left: 50%; transform: translateX(-50%);
   width: 100%; max-width: var(--max-w);
-  height: var(--nav-h);
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -335,6 +335,7 @@ main { padding: 16px 18px calc(var(--nav-h) + 28px); }
   border: none; background: none;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 3px;
+  padding-top: 6px;
   color: var(--faint);
   font-size: 11px; font-weight: 600;
   transition: color 0.15s ease;
