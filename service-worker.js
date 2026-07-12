@@ -1,18 +1,6 @@
-const CACHE = "budget-v3";
-const ASSETS = [
-  ".",
-  "index.html",
-  "styles.css",
-  "format.js",
-  "store.js",
-  "app.js",
-  "manifest.webmanifest"
-];
+const CACHE = "budget-v4";
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(ASSETS))
-  );
   self.skipWaiting();
 });
 
@@ -25,8 +13,15 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
+// Network-first : toujours essayer le réseau, cache uniquement si offline
 self.addEventListener("fetch", (e) => {
   e.respondWith(
-    caches.match(e.request).then((cached) => cached || fetch(e.request))
+    fetch(e.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
