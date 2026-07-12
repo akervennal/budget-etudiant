@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Générer les icônes</title></head>
+<body style="font-family:sans-serif;padding:24px">
+  <h2>Génération des icônes PWA</h2>
+  <p>Clique sur chaque bouton pour télécharger l'icône, puis place les fichiers dans le dossier <code>icons/</code>.</p>
+  <button onclick="generate(192)">Télécharger icon-192.png</button>
+  <button onclick="generate(512)" style="margin-left:12px">Télécharger icon-512.png</button>
+  <br><br>
+  <canvas id="c" style="border:1px solid #ccc"></canvas>
+
+  <script>
+    function generate(size) {
+      const canvas = document.getElementById("c");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      // Fond vert
+      ctx.fillStyle = "#0c8f63";
+      ctx.fillRect(0, 0, size, size);
+
+      // Lettre B
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold ${size * 0.55}px system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("B", size / 2, size / 2);
+
+      const a = document.createElement("a");
+      a.download = `icon-${size}.png`;
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    }
+  </script>
+</body>
+</html>

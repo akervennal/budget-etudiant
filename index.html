@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c8f63">
+  <title>Budget étudiant</title>
+  <meta name="description" content="Sais en un coup d'œil combien tu peux vraiment dépenser aujourd'hui.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- Polices (repli système si hors ligne) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1 class="app-title">Budget</h1>
+    <button class="month-pill" id="monthPill" aria-label="Changer de mois">
+      <span id="monthLabel" class="num">—</span>
+      <span class="caret">▾</span>
+    </button>
+  </header>
+
+  <main>
+    <section id="view-home" class="view active"></section>
+    <section id="view-history" class="view"></section>
+    <section id="view-months" class="view"></section>
+    <section id="view-settings" class="view"></section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab active" data-view="home"><span class="ti">◎</span>Accueil</button>
+    <button class="tab" data-view="history"><span class="ti">≡</span>Historique</button>
+    <button class="tab" data-view="months"><span class="ti">◧</span>Mois</button>
+    <button class="tab" data-view="settings"><span class="ti">⚙</span>Réglages</button>
+  </nav>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" id="modalRoot"></div>
+  </div>
+
+  <script src="format.js"></script>
+  <script src="store.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

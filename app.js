@@ -1,0 +1,554 @@
+/* app.js — rendu de l'interface, navigation et interactions */
+(function (Budget) {
+  "use strict";
+
+  const S = Budget.store;
+  const F = Budget.format;
+  let currentView = "home";
+
+  /* ---------- petits utilitaires DOM ---------- */
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const el = (tag, cls, html) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html != null) n.innerHTML = html;
+    return n;
+  };
+  const esc = (s) =>
+    String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    }[c]));
+
+  // Emoji indicatif par catégorie (purement visuel)
+  const CAT_EMOJI = {
+    Restaurant: "🍽️", Courses: "🛒", Transport: "🚌", Loisir: "🎬",
+    "Achat perso": "🛍️", "Matériel photo": "📷", Autre: "💸",
+    Loyer: "🏠", "Electricité": "💡", Électricité: "💡", Internet: "🌐",
+    Assurance: "🛡️", Abonnements: "🔁", Salaire: "💼",
+  };
+  const emojiFor = (name, fallback) => CAT_EMOJI[name] || fallback || "•";
+
+  /* ================= RENDU ================= */
+
+  function render() {
+    const m = S.currentMonth();
+    $("#monthLabel").textContent = m.label;
+    if (currentView === "home") renderHome(m);
+    else if (currentView === "history") renderHistory(m);
+    else if (currentView === "months") renderMonths();
+    else if (currentView === "settings") renderSettings();
+  }
+
+  /* ---------- Accueil ---------- */
+  function renderHome(m) {
+    const c = S.computed(m);
+    const view = $("#view-home");
+    view.innerHTML = "";
+
+    // état de la carte héro
+    let state = "ok";
+    if (c.available < 0) state = "low";
+    else if (c.available < c.totalExpense * 0.15 || c.available < 50) state = "tight";
+
+    const hero = el("div", "hero " + state);
+    hero.innerHTML = `
+      <p class="hero-label">Argent disponible</p>
+      <p class="hero-amount num">${F.money(c.available)}</p>
+      <p class="hero-note"><span class="dot"></span>${
+        c.available < 0
+          ? "Tu es à découvert sur ce mois"
+          : c.pendingExpense > 0
+          ? `Après ${F.money(c.pendingExpense)} de dépenses encore à venir`
+          : "Tout est à jour pour ce mois"
+      }</p>`;
+    view.appendChild(hero);
+
+    const stats = el("div", "substats");
+    stats.innerHTML = `
+      <div class="stat">
+        <p class="k">Solde du compte</p>
+        <p class="v num ${c.bank < 0 ? "neg" : ""}">${F.money(c.bank)}</p>
+      </div>
+      <div class="stat">
+        <p class="k">Dépenses restantes</p>
+        <p class="v num">${F.money(c.pendingExpense)}</p>
+      </div>`;
+    view.appendChild(stats);
+
+    const add = el("button", "btn-primary");
+    add.innerHTML = `<span class="plus">+</span> Ajouter une opération`;
+    add.addEventListener("click", () => openTxModal(m.id));
+    view.appendChild(add);
+
+    // Dépenses récurrentes à cocher
+    if (m.expenses.length) {
+      const sec = el("div", "section");
+      sec.appendChild(sectionHead("Dépenses du mois", null));
+      const list = el("div", "list");
+      m.expenses.forEach((e) => list.appendChild(recurringRow(m, "expense", e)));
+      sec.appendChild(list);
+      view.appendChild(sec);
+    }
+    if (m.incomes.length) {
+      const sec = el("div", "section");
+      sec.appendChild(sectionHead("Revenus du mois", null));
+      const list = el("div", "list");
+      m.incomes.forEach((i) => list.appendChild(recurringRow(m, "income", i)));
+      sec.appendChild(list);
+      view.appendChild(sec);
+    }
+
+    // Dernières opérations
+    const sec = el("div", "section");
+    sec.appendChild(sectionHead("Dernières opérations", m.transactions.length ? "Tout voir" : null, () => switchView("history")));
+    if (m.transactions.length) {
+      const list = el("div", "list");
+      m.transactions.slice().reverse().slice(0, 4).forEach((t) => list.appendChild(txRow(m, t)));
+      sec.appendChild(list);
+    } else {
+      sec.appendChild(emptyState("💸", "Aucune opération pour l'instant. Ajoute ta première dépense."));
+    }
+    view.appendChild(sec);
+  }
+
+  function recurringRow(m, kind, item) {
+    const row = el("div", "row" + (item.done ? " done" : ""));
+    const sign = kind === "income" ? "+" : "−";
+    const isAuto = item.day != null;
+    const statusText = item.done
+      ? (kind === "income" ? "Reçu" : "Payé") + (isAuto ? ` · le ${item.day}` : "")
+      : (kind === "income" ? "À recevoir" : "À payer") + (isAuto ? ` le ${item.day}` : "");
+    if (isAuto) {
+      row.innerHTML = `
+        <div class="check ${item.done ? "done" : ""}" style="opacity:.45;cursor:default" aria-hidden="true">✓</div>
+        <div class="body">
+          <p class="t">${esc(item.name)}</p>
+          <p class="s">${statusText}</p>
+        </div>
+        <div class="amt ${kind === "income" ? "income" : "expense"} num">${sign}${F.money(item.amount).replace("€", "").trim()} €</div>`;
+    } else {
+      row.innerHTML = `
+        <button class="check ${item.done ? "done" : ""}" aria-label="${item.done ? "Marquer non fait" : (kind === "income" ? "Marquer reçu" : "Marquer payé")}">✓</button>
+        <div class="body">
+          <p class="t">${esc(item.name)}</p>
+          <p class="s">${statusText}</p>
+        </div>
+        <div class="amt ${kind === "income" ? "income" : "expense"} num">${sign}${F.money(item.amount).replace("€", "").trim()} €</div>`;
+      $(".check", row).addEventListener("click", () => {
+        S.toggleRecurring(m.id, kind, item.id);
+      });
+    }
+    return row;
+  }
+
+  function txRow(m, t) {
+    const row = el("div", "row");
+    row.innerHTML = `
+      <div class="chip">${emojiFor(t.category, "💸")}</div>
+      <div class="body">
+        <p class="t">${esc(t.description || t.category)}</p>
+        <p class="s">${esc(t.category)} · ${F.fullDate(t.date)}</p>
+      </div>
+      <div class="amt ${t.type === "income" ? "income" : "expense"} num">${t.type === "income" ? "+" : "−"}${F.money(t.amount).replace("€", "").trim()} €</div>`;
+    row.addEventListener("click", () => openTxModal(m.id, t));
+    return row;
+  }
+
+  /* ---------- Historique ---------- */
+  function renderHistory(m) {
+    const view = $("#view-history");
+    view.innerHTML = "";
+    const head = el("div", "section-head");
+    head.style.marginTop = "4px";
+    head.innerHTML = `<h2 class="section-title">Évolution — ${esc(m.label)}</h2>`;
+    view.appendChild(head);
+
+    const events = S.timeline(m.id);
+    if (events.length <= 1 && m.transactions.length === 0) {
+      view.appendChild(emptyState("📈", "L'historique se remplit dès que tu ajoutes des opérations."));
+      return;
+    }
+
+    const tl = el("div", "timeline");
+    events.forEach((ev) => {
+      const row = el("div", "tl-row" + (ev.kind === "start" ? " start" : ""));
+      const deltaHtml =
+        ev.delta == null
+          ? ""
+          : `<div class="tl-delta ${ev.delta >= 0 ? "pos" : "neg"} num">${F.signed(ev.delta)}</div>`;
+      row.innerHTML = `
+        <div class="tl-date num">${ev.date ? F.dayMonth(ev.date) : ""}</div>
+        <div class="tl-main">
+          <p class="t">${esc(ev.label)}</p>
+          ${ev.category ? `<p class="s">${esc(ev.category)}</p>` : ev.kind === "recurring" ? `<p class="s">Récurrent</p>` : ""}
+        </div>
+        <div class="tl-right">
+          ${deltaHtml}
+          <div class="tl-bal num">${F.money(ev.balance)}</div>
+        </div>`;
+      if (ev.kind === "transaction") {
+        row.style.cursor = "pointer";
+        row.addEventListener("click", () => openTxModal(m.id, m.transactions.find((t) => t.id === ev.id)));
+      }
+      tl.appendChild(row);
+    });
+    view.appendChild(tl);
+  }
+
+  /* ---------- Mois ---------- */
+  function renderMonths() {
+    const view = $("#view-months");
+    view.innerHTML = "";
+    const st = S.getState();
+
+    const next = el("button", "btn-primary");
+    next.innerHTML = `<span class="plus">→</span> Passer au mois suivant`;
+    next.addEventListener("click", () => {
+      const last = st.months[st.months.length - 1];
+      const label = S.nextMonthLabel(last.label);
+      if (confirm(`Créer « ${label} » ?\nSolde de départ : ${F.money(S.available(last))}\nLes revenus et dépenses récurrents seront appliqués automatiquement.`)) {
+        S.goToNextMonth();
+        switchView("home");
+      }
+    });
+    view.appendChild(next);
+
+    const sec = el("div", "section");
+    sec.appendChild(sectionHead("Tes mois", null));
+    const list = el("div", "list");
+    st.months.slice().reverse().forEach((m) => {
+      const c = S.computed(m);
+      const isCur = m.id === st.currentMonthId;
+      const card = el("div", "month-card" + (isCur ? " current" : ""));
+      card.innerHTML = `
+        <div>
+          <p class="ml">${esc(m.label)}${isCur ? '<span class="badge-current">Actuel</span>' : ""}</p>
+          <p class="ms">${m.transactions.length} opération(s)</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div>
+            <p class="mv num ${c.available < 0 ? "neg" : ""}">${F.money(c.available)}</p>
+            <p class="ms" style="text-align:right">disponible</p>
+          </div>
+          <button class="icon-btn" data-act="menu" aria-label="Options">⋯</button>
+        </div>`;
+      card.addEventListener("click", (e) => {
+        if (e.target.closest('[data-act="menu"]')) {
+          openMonthMenu(m);
+        } else {
+          S.setCurrentMonth(m.id);
+          switchView("home");
+        }
+      });
+      list.appendChild(card);
+    });
+    sec.appendChild(list);
+    view.appendChild(sec);
+  }
+
+  function openMonthMenu(m) {
+    const st = S.getState();
+    const body = el("div");
+    const rename = el("button", "btn-ghost");
+    rename.textContent = "Renommer ce mois";
+    rename.style.marginBottom = "10px";
+    rename.addEventListener("click", () => {
+      const v = prompt("Nom du mois :", m.label);
+      if (v) { S.renameMonth(m.id, v); closeModal(); }
+    });
+    body.appendChild(rename);
+
+    if (st.months.length > 1) {
+      const del = el("button", "btn-danger-ghost");
+      del.textContent = "Supprimer ce mois";
+      del.addEventListener("click", () => {
+        if (confirm(`Supprimer « ${m.label} » ? Les mois suivants seront re-calculés.`)) {
+          S.deleteMonth(m.id);
+          closeModal();
+        }
+      });
+      body.appendChild(del);
+    }
+    openModal(m.label, body);
+  }
+
+  /* ---------- Réglages ---------- */
+  function renderSettings() {
+    const view = $("#view-settings");
+    view.innerHTML = "";
+    const st = S.getState();
+
+    // Solde de départ (premier mois)
+    const balSec = el("div", "section");
+    balSec.style.marginTop = "4px";
+    balSec.appendChild(sectionHead("Solde de départ", "Modifier", () => {
+      const v = prompt("Solde de départ du tout premier mois (€) :", st.months[0].initialBalance);
+      if (v != null && v !== "") S.setInitialBalance(parseFloat(v.replace(",", ".")) || 0);
+    }));
+    const balRow = el("div", "row");
+    balRow.innerHTML = `<div class="body"><p class="t">${esc(st.months[0].label)}</p><p class="s">Point de départ de tous les calculs</p></div><div class="amt num">${F.money(st.months[0].initialBalance)}</div>`;
+    balSec.appendChild(balRow);
+    view.appendChild(balSec);
+
+    view.appendChild(recurringSection("Revenus récurrents", "income", st.recurringIncomes));
+    view.appendChild(recurringSection("Dépenses récurrentes", "expense", st.recurringExpenses));
+
+    // Catégories
+    const catSec = el("div", "section");
+    catSec.appendChild(sectionHead("Catégories", "Ajouter", () => {
+      const v = prompt("Nouvelle catégorie :");
+      if (v) S.addCategory(v);
+    }));
+    const catList = el("div", "list");
+    st.categories.forEach((cat) => {
+      const row = el("div", "row");
+      row.innerHTML = `<div class="chip">${emojiFor(cat, "🏷️")}</div><div class="body"><p class="t">${esc(cat)}</p></div><button class="icon-btn" aria-label="Supprimer">✕</button>`;
+      $(".icon-btn", row).addEventListener("click", () => {
+        if (confirm(`Supprimer la catégorie « ${cat} » ?`)) S.deleteCategory(cat);
+      });
+      catList.appendChild(row);
+    });
+    catSec.appendChild(catList);
+    view.appendChild(catSec);
+
+    // Données
+    const dataSec = el("div", "section");
+    dataSec.appendChild(sectionHead("Données", null));
+    const reset = el("button", "btn-danger-ghost");
+    reset.textContent = "Tout réinitialiser";
+    reset.addEventListener("click", () => {
+      if (confirm("Effacer toutes les données ? Cette action est irréversible.")) {
+        S.reset();
+        switchView("home");
+      }
+    });
+    dataSec.appendChild(reset);
+    const note = el("p", "empty");
+    note.style.padding = "14px 4px 0";
+    note.innerHTML = `<p style="margin:0">Tes données restent sur cet appareil (hors ligne). Aucune connexion bancaire.</p>`;
+    dataSec.appendChild(note);
+    view.appendChild(dataSec);
+  }
+
+  function recurringSection(title, kind, items) {
+    const sec = el("div", "section");
+    sec.appendChild(sectionHead(title, "Ajouter", () => openRecurringModal(kind)));
+    if (items.length) {
+      const list = el("div", "list");
+      items.forEach((it) => {
+        const row = el("div", "row");
+        row.innerHTML = `
+          <div class="chip">${emojiFor(it.name, kind === "income" ? "💰" : "📄")}</div>
+          <div class="body"><p class="t">${esc(it.name)}</p><p class="s">Chaque mois${it.day ? ` · le ${it.day} (auto)` : " · Manuel"}</p></div>
+          <div class="amt ${kind === "income" ? "income" : "expense"} num">${kind === "income" ? "+" : "−"}${F.money(it.amount).replace("€", "").trim()} €</div>`;
+        row.addEventListener("click", () => openRecurringModal(kind, it));
+        list.appendChild(row);
+      });
+      sec.appendChild(list);
+    } else {
+      sec.appendChild(emptyState(kind === "income" ? "💰" : "📄", `Aucun ${kind === "income" ? "revenu" : "e dépense"} récurrent${kind === "income" ? "" : "e"}. Ajoute ${kind === "income" ? "ton salaire, une aide…" : "loyer, internet…"}`));
+    }
+    return sec;
+  }
+
+  /* ---------- helpers de section ---------- */
+  function sectionHead(title, actionLabel, onAction) {
+    const head = el("div", "section-head");
+    head.appendChild(el("h2", "section-title", esc(title)));
+    if (actionLabel) {
+      const b = el("button", "section-action", esc(actionLabel));
+      b.addEventListener("click", onAction);
+      head.appendChild(b);
+    }
+    return head;
+  }
+  function emptyState(emoji, text) {
+    return el("div", "empty", `<div class="em-emoji">${emoji}</div><p>${esc(text)}</p>`);
+  }
+
+  /* ================= MODALES ================= */
+  const backdrop = () => $("#modalBackdrop");
+  const modalRoot = () => $("#modalRoot");
+
+  function openModal(title, bodyNode) {
+    modalRoot().innerHTML = "";
+    const head = el("div", "modal-head");
+    head.innerHTML = `<h3 class="modal-title">${esc(title)}</h3>`;
+    const close = el("button", "modal-close", "✕");
+    close.addEventListener("click", closeModal);
+    head.appendChild(close);
+    modalRoot().appendChild(head);
+    modalRoot().appendChild(bodyNode);
+    backdrop().classList.add("open");
+  }
+  function closeModal() {
+    backdrop().classList.remove("open");
+  }
+
+  // Modale ajout / édition d'une transaction
+  function openTxModal(monthId, existing) {
+    const st = S.getState();
+    let type = existing ? existing.type : "expense";
+
+    const body = el("div");
+    body.innerHTML = `
+      <div class="segment">
+        <button data-type="expense">Dépense</button>
+        <button data-type="income">Revenu</button>
+      </div>
+      <div class="field amount">
+        <label>Montant</label>
+        <input id="f-amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00" value="${existing ? existing.amount : ""}">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Date</label>
+          <input id="f-date" type="date" value="${existing ? existing.date : F.todayISO()}">
+        </div>
+        <div class="field">
+          <label>Catégorie</label>
+          <select id="f-cat">${st.categories.map((c) => `<option ${existing && existing.category === c ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Description (facultatif)</label>
+        <input id="f-desc" type="text" placeholder="Ex : resto avec les potes" value="${existing ? esc(existing.description) : ""}">
+      </div>
+      <div class="modal-actions">
+        ${existing ? '<button class="btn-delete" id="f-del">Supprimer</button>' : ""}
+        <button class="btn-primary" id="f-save">${existing ? "Enregistrer" : "Ajouter"}</button>
+      </div>`;
+
+    openModal(existing ? "Modifier l'opération" : "Nouvelle opération", body);
+
+    const segBtns = body.querySelectorAll(".segment button");
+    const syncSeg = () => segBtns.forEach((b) => b.classList.toggle("active", b.dataset.type === type));
+    segBtns.forEach((b) => b.addEventListener("click", () => { type = b.dataset.type; syncSeg(); }));
+    syncSeg();
+
+    setTimeout(() => $("#f-amount", body).focus(), 60);
+
+    $("#f-save", body).addEventListener("click", () => {
+      const amount = parseFloat(($("#f-amount", body).value || "").replace(",", "."));
+      if (!amount || amount <= 0) { $("#f-amount", body).focus(); return; }
+      const tx = {
+        type,
+        amount,
+        date: $("#f-date", body).value || F.todayISO(),
+        category: $("#f-cat", body).value,
+        description: $("#f-desc", body).value.trim(),
+      };
+      if (existing) S.updateTransaction(monthId, existing.id, tx);
+      else S.addTransaction(monthId, tx);
+      closeModal();
+    });
+
+    if (existing) {
+      $("#f-del", body).addEventListener("click", () => {
+        S.deleteTransaction(monthId, existing.id);
+        closeModal();
+      });
+    }
+  }
+
+  // Modale ajout / édition d'un récurrent
+  function openRecurringModal(kind, existing) {
+    const body = el("div");
+    body.innerHTML = `
+      <div class="field">
+        <label>Nom</label>
+        <input id="r-name" type="text" placeholder="${kind === "income" ? "Ex : Salaire, argent parents" : "Ex : Loyer, internet"}" value="${existing ? esc(existing.name) : ""}">
+      </div>
+      <div class="field amount">
+        <label>Montant par mois</label>
+        <input id="r-amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00" value="${existing ? existing.amount : ""}">
+      </div>
+      <div class="field">
+        <label>Jour du mois (optionnel)</label>
+        <input id="r-day" type="number" inputmode="numeric" min="1" max="31" placeholder="— laisser vide pour cocher manuellement —" value="${existing && existing.day ? existing.day : ""}">
+      </div>
+      <p class="empty" style="padding:2px 2px 10px;text-align:left;font-size:12.5px">Si tu indiques un jour (ex : 5), le paiement sera validé automatiquement ce jour-là. Sinon, coche-le manuellement quand il tombe.</p>
+      <p class="empty" style="padding:2px 2px 10px;text-align:left;font-size:12.5px">La modification s'applique à ce mois et aux suivants. Les mois passés ne changent pas.</p>
+      <div class="modal-actions">
+        ${existing ? '<button class="btn-delete" id="r-del">Supprimer</button>' : ""}
+        <button class="btn-primary" id="r-save">${existing ? "Enregistrer" : "Ajouter"}</button>
+      </div>`;
+    openModal(
+      (existing ? "Modifier " : "Nouveau ") + (kind === "income" ? "revenu récurrent" : "dépense récurrente"),
+      body
+    );
+    setTimeout(() => $("#r-name", body).focus(), 60);
+
+    $("#r-save", body).addEventListener("click", () => {
+      const name = $("#r-name", body).value.trim();
+      const amount = parseFloat(($("#r-amount", body).value || "").replace(",", "."));
+      if (!name) { $("#r-name", body).focus(); return; }
+      if (!amount || amount <= 0) { $("#r-amount", body).focus(); return; }
+      const dayVal = parseInt($("#r-day", body).value, 10);
+      const day = dayVal >= 1 && dayVal <= 31 ? dayVal : null;
+      if (existing) S.updateRecurring(kind, existing.id, { name, amount, day });
+      else S.addRecurring(kind, name, amount, day);
+      closeModal();
+    });
+    if (existing) {
+      $("#r-del", body).addEventListener("click", () => {
+        if (confirm(`Supprimer « ${existing.name} » des récurrents ?`)) {
+          S.deleteRecurring(kind, existing.id);
+          closeModal();
+        }
+      });
+    }
+  }
+
+  // Sélecteur de mois depuis la pastille d'en-tête
+  function openMonthPicker() {
+    const st = S.getState();
+    const body = el("div", "list");
+    st.months.slice().reverse().forEach((m) => {
+      const isCur = m.id === st.currentMonthId;
+      const row = el("button", "month-card" + (isCur ? " current" : ""));
+      row.style.width = "100%";
+      row.style.textAlign = "left";
+      row.innerHTML = `<div><p class="ml">${esc(m.label)}${isCur ? '<span class="badge-current">Actuel</span>' : ""}</p></div><p class="mv num ${S.available(m) < 0 ? "neg" : ""}">${F.money(S.available(m))}</p>`;
+      row.addEventListener("click", () => { S.setCurrentMonth(m.id); closeModal(); });
+      body.appendChild(row);
+    });
+    openModal("Choisir un mois", body);
+  }
+
+  /* ================= NAVIGATION ================= */
+  function switchView(name) {
+    currentView = name;
+    document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+    $("#view-" + name).classList.add("active");
+    document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.view === name));
+    window.scrollTo({ top: 0, behavior: "auto" });
+    render();
+  }
+
+  /* ================= INIT ================= */
+  function init() {
+    S.init();
+    S.subscribe(render);
+
+    document.querySelectorAll(".tab").forEach((t) =>
+      t.addEventListener("click", () => switchView(t.dataset.view))
+    );
+    $("#monthPill").addEventListener("click", openMonthPicker);
+    backdrop().addEventListener("click", (e) => {
+      if (e.target === backdrop()) closeModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+
+    switchView("home");
+
+    // PWA : enregistrement du service worker si servi via http(s)
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})(window.Budget = window.Budget || {});
