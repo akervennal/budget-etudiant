@@ -314,10 +314,10 @@
     const idx = list.findIndex((x) => x.id === tplId);
     if (idx === -1) return;
     list.splice(idx, 1);
-    // Retire du mois courant si non "fait"
+    // Retire du mois courant (coché ou non)
     const m = currentMonth();
     const arr = kind === "income" ? m.incomes : m.expenses;
-    const snapIdx = arr.findIndex((x) => x.templateId === tplId && !x.done);
+    const snapIdx = arr.findIndex((x) => x.templateId === tplId);
     if (snapIdx !== -1) arr.splice(snapIdx, 1);
     rechain();
     notify();
