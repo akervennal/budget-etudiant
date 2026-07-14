@@ -501,7 +501,7 @@
       </div>
       <div class="field amount">
         <label>Montant</label>
-        <input id="f-amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00" value="${existing ? existing.amount : ""}">
+        <input id="f-amount" type="text" inputmode="decimal" placeholder="0,00" value="${existing ? existing.amount : ""}">
       </div>
       <div class="field-row">
         <div class="field">
@@ -564,7 +564,7 @@
       </div>
       <div class="field amount">
         <label>Montant par mois</label>
-        <input id="r-amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00" value="${existing ? existing.amount : ""}">
+        <input id="r-amount" type="text" inputmode="decimal" placeholder="0,00" value="${existing ? existing.amount : ""}">
       </div>
       <div class="field">
         <label>Jour du mois (optionnel)</label>
