@@ -27,7 +27,10 @@
     Loyer: "🏠", "Electricité": "💡", Électricité: "💡", Internet: "🌐",
     Assurance: "🛡️", Abonnements: "🔁", Salaire: "💼", "Santé": "💊", "Prêt": "🏦",
   };
-  const emojiFor = (name, fallback) => CAT_EMOJI[name] || fallback || "•";
+  const emojiFor = (name, fallback) => {
+    const custom = S.getCategoryEmojis();
+    return custom[name] || CAT_EMOJI[name] || fallback || "•";
+  };
 
   const MONTHS_FR_APP = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
   function realMonthLabel() {
@@ -488,8 +491,30 @@
     // Catégories
     const catSec = el("div", "section");
     catSec.appendChild(sectionHead("Catégories", "Ajouter", () => {
-      const v = prompt("Nouvelle catégorie :");
-      if (v) S.addCategory(v);
+      const body = el("div");
+      body.innerHTML = `
+        <div class="field-row">
+          <div class="field" style="max-width:72px">
+            <label>Emoji</label>
+            <input id="cat-emoji" type="text" placeholder="🏷️" style="font-size:22px;text-align:center;padding:10px 6px">
+          </div>
+          <div class="field">
+            <label>Nom</label>
+            <input id="cat-name" type="text" placeholder="Ex : Santé, Voyage…">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-primary" id="cat-save">Ajouter</button>
+        </div>`;
+      openModal("Nouvelle catégorie", body);
+      setTimeout(() => $("#cat-emoji", body).focus(), 60);
+      $("#cat-save", body).addEventListener("click", () => {
+        const name = $("#cat-name", body).value.trim();
+        const emoji = $("#cat-emoji", body).value.trim();
+        if (!name) { $("#cat-name", body).focus(); return; }
+        S.addCategory(name, emoji);
+        closeModal();
+      });
     }));
     const catList = el("div", "list");
     st.categories.forEach((cat) => {

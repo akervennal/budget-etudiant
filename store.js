@@ -156,6 +156,7 @@
     state = {
       version: 1,
       categories: DEFAULT_CATEGORIES.slice(),
+      categoryEmojis: {},
       recurringIncomes: [],
       recurringExpenses: [],
       months: [first],
@@ -370,15 +371,23 @@
 
   /* ---------- catégories ---------- */
 
-  function addCategory(name) {
+  function addCategory(name, emoji) {
     const n = name.trim();
-    if (n && !state.categories.includes(n)) state.categories.push(n);
+    if (!n) return;
+    if (!state.categoryEmojis) state.categoryEmojis = {};
+    if (!state.categories.includes(n)) state.categories.push(n);
+    if (emoji && emoji.trim()) state.categoryEmojis[n] = emoji.trim();
     notify();
   }
 
   function deleteCategory(name) {
     state.categories = state.categories.filter((c) => c !== name);
+    if (state.categoryEmojis) delete state.categoryEmojis[name];
     notify();
+  }
+
+  function getCategoryEmojis() {
+    return state.categoryEmojis || {};
   }
 
   /* ---------- mois ---------- */
@@ -581,6 +590,7 @@
     // catégories
     addCategory,
     deleteCategory,
+    getCategoryEmojis,
     // divers
     reset,
   };
