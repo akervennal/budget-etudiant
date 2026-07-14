@@ -426,7 +426,12 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
   appearance: none;
 }
 .field input[type="date"] {
-  -webkit-appearance: textfield;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
 }
 .field input:focus, .field select:focus {
   border-color: var(--ok);
