@@ -677,15 +677,13 @@
         <label>Montant</label>
         <input id="f-amount" type="text" inputmode="decimal" placeholder="0,00" value="${existing ? existing.amount : ""}">
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Date</label>
-          <input id="f-date" type="date" value="${existing ? existing.date : F.todayISO()}">
-        </div>
-        <div class="field">
-          <label>Catégorie</label>
-          <select id="f-cat">${st.categories.map((c) => `<option ${existing && existing.category === c ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
-        </div>
+      <div class="field">
+        <label>Date</label>
+        <input id="f-date" type="date" value="${existing ? existing.date : F.todayISO()}">
+      </div>
+      <div class="field">
+        <label>Catégorie</label>
+        <select id="f-cat">${st.categories.map((c) => `<option ${existing && existing.category === c ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
       </div>
       <div class="field">
         <label>Description (facultatif)</label>
@@ -740,15 +738,13 @@
         <label>Nom</label>
         <input id="r-name" type="text" placeholder="${kind === "income" ? "Ex : Salaire, argent parents" : "Ex : Loyer, internet"}" value="${existing ? esc(existing.name) : ""}">
       </div>
-      <div class="field-row">
-        <div class="field amount">
-          <label>Montant / mois</label>
-          <input id="r-amount" type="text" inputmode="decimal" placeholder="0,00" value="${existing ? existing.amount : ""}">
-        </div>
-        <div class="field">
-          <label>Catégorie</label>
-          <select id="r-cat">${catOptions}</select>
-        </div>
+      <div class="field amount">
+        <label>Montant / mois</label>
+        <input id="r-amount" type="text" inputmode="decimal" placeholder="0,00" value="${existing ? existing.amount : ""}">
+      </div>
+      <div class="field">
+        <label>Catégorie</label>
+        <select id="r-cat">${catOptions}</select>
       </div>
       <div class="field">
         <label>Jour du mois (optionnel)</label>
