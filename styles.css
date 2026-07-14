@@ -424,8 +424,8 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 15%, transparent);
 }
 .field.amount input { font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
-.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.field-row .field { min-width: 0; }
+.field-row { display: flex; flex-direction: row; gap: 14px; }
+.field-row .field { flex: 1 1 0; min-width: 0; }
 
 .modal-actions { margin-top: 6px; display: flex; gap: 10px; }
 .modal-actions .btn-primary { margin-top: 0; }
