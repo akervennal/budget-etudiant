@@ -421,6 +421,7 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
   padding: 10px 14px;
   font-size: 13px;
   gap: 10px;
+  margin-top: 12px;
   margin-bottom: 4px;
 }
 .banner-btn {

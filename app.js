@@ -38,7 +38,6 @@
 
   function render() {
     const m = S.currentMonth();
-    $("#monthLabel").textContent = m.label;
     if (currentView === "home") renderHome(m);
     else if (currentView === "history") renderHistory(m);
     else if (currentView === "months") renderMonths();
@@ -87,7 +86,7 @@
       const st2 = S.getState();
       const todayM = st2.months.find((x) => x.label === realLabel);
       const banner = el("div", "month-banner");
-      banner.innerHTML = `<span>📅 Tu consultes <strong>${esc(m.label)}</strong></span>`;
+      banner.innerHTML = `<span>Tu consultes <strong>${esc(m.label)}</strong></span>`;
       if (todayM) {
         const btn = el("button", "banner-btn");
         btn.textContent = `Retour à ${realLabel}`;
@@ -319,7 +318,6 @@
           openMonthMenu(m);
         } else {
           S.setCurrentMonth(m.id);
-          switchView("home");
         }
       });
       list.appendChild(card);
@@ -687,7 +685,6 @@
     document.querySelectorAll(".tab").forEach((t) =>
       t.addEventListener("click", () => switchView(t.dataset.view))
     );
-    $("#monthPill").addEventListener("click", openMonthPicker);
     backdrop().addEventListener("click", (e) => {
       if (e.target === backdrop()) closeModal();
     });
