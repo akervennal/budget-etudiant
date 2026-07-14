@@ -5,6 +5,7 @@
   const S = Budget.store;
   const F = Budget.format;
   let currentView = "home";
+  let viewAll = false; // true = vue globale toutes périodes
 
   /* ---------- petits utilitaires DOM ---------- */
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -37,11 +38,16 @@
   /* ================= RENDU ================= */
 
   function render() {
-    const m = S.currentMonth();
-    if (currentView === "home") renderHome(m);
-    else if (currentView === "history") renderHistory(m);
-    else if (currentView === "months") renderMonths();
-    else if (currentView === "settings") renderSettings();
+    if (currentView === "months") { renderMonths(); return; }
+    if (currentView === "settings") { renderSettings(); return; }
+    if (viewAll) {
+      if (currentView === "home") renderHomeAll();
+      else if (currentView === "history") renderHistoryAll();
+    } else {
+      const m = S.currentMonth();
+      if (currentView === "home") renderHome(m);
+      else if (currentView === "history") renderHistory(m);
+    }
   }
 
   /* ---------- Accueil ---------- */
@@ -258,6 +264,73 @@
     view.appendChild(tl);
   }
 
+  /* ---------- Vue globale (toutes périodes) ---------- */
+  function allTxSorted() {
+    const st = S.getState();
+    return st.months
+      .flatMap((m) => m.transactions.map((t) => ({ ...t, _monthId: m.id })))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  function renderHomeAll() {
+    const view = $("#view-home");
+    view.innerHTML = "";
+    const st = S.getState();
+    const lastM = st.months[st.months.length - 1];
+    const curBal = S.available(lastM);
+    const allTx = st.months.flatMap((m) => m.transactions);
+    const totalInc = allTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+    const totalExp = allTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+
+    const hero = el("div", "hero " + (curBal < 0 ? "low" : "ok"));
+    hero.innerHTML = `
+      <p class="hero-label">Solde actuel</p>
+      <p class="hero-amount num">${F.money(curBal)}</p>
+      <p class="hero-note"><span class="dot"></span>Toutes périodes confondues</p>`;
+    view.appendChild(hero);
+
+    const stats = el("div", "substats");
+    stats.innerHTML = `
+      <div class="stat"><p class="k">Total revenus</p><p class="v num income">${F.money(totalInc)}</p></div>
+      <div class="stat"><p class="k">Total dépenses</p><p class="v num">${F.money(totalExp)}</p></div>`;
+    view.appendChild(stats);
+
+    renderCatSummary({ transactions: allTx }, view);
+
+    if (allTx.length) {
+      const link = el("button", "btn-ghost");
+      link.textContent = "Voir toutes les opérations →";
+      link.style.marginTop = "4px";
+      link.addEventListener("click", () => switchView("history"));
+      view.appendChild(link);
+    }
+  }
+
+  function renderHistoryAll() {
+    const view = $("#view-history");
+    view.innerHTML = "";
+    const st = S.getState();
+    const period = st.months.length === 1
+      ? st.months[0].label
+      : `${st.months[0].label} → ${st.months[st.months.length - 1].label}`;
+    const head = el("div", "section-head");
+    head.style.marginTop = "4px";
+    head.innerHTML = `<h2 class="section-title">Toutes les opérations — ${esc(period)}</h2>`;
+    view.appendChild(head);
+
+    const sorted = allTxSorted();
+    if (!sorted.length) {
+      view.appendChild(emptyState("📈", "Aucune opération pour l'instant."));
+      return;
+    }
+    const list = el("div", "list");
+    sorted.forEach((t) => {
+      const srcMonth = st.months.find((m) => m.transactions.some((x) => x.id === t.id));
+      list.appendChild(txRow(srcMonth, t));
+    });
+    view.appendChild(list);
+  }
+
   /* ---------- Mois ---------- */
   function renderMonths() {
     const view = $("#view-months");
@@ -298,11 +371,12 @@
     const period = st.months.length === 1
       ? st.months[0].label
       : `${st.months[0].label} → ${lastM.label}`;
-    const totalCard = el("div", "month-card total-card");
+    const totalCard = el("div", "month-card total-card" + (viewAll ? " current" : ""));
     totalCard.style.cursor = "pointer";
+    const totalBadge = viewAll ? '<span class="badge-current">Sélectionné</span>' : "";
     totalCard.innerHTML = `
       <div style="width:100%">
-        <p class="ml">Depuis le début <span class="ms" style="margin-left:6px">${esc(period)}</span></p>
+        <p class="ml">Depuis le début${totalBadge} <span class="ms" style="margin-left:6px">${esc(period)}</span></p>
         <div class="total-grid">
           <div><p class="ms">Solde actuel</p><p class="mv num ${curBal < 0 ? "neg" : ""}">${F.money(curBal)}</p></div>
           <div><p class="ms">Total revenus</p><p class="mv num income">${F.money(totalInc)}</p></div>
@@ -310,19 +384,8 @@
         </div>
       </div>`;
     totalCard.addEventListener("click", () => {
-      const sorted = allTx.slice().sort((a, b) => b.date.localeCompare(a.date));
-      const body = el("div");
-      if (sorted.length) {
-        const list2 = el("div", "list");
-        sorted.forEach((t) => {
-          const srcMonth = st.months.find((m) => m.transactions.some((x) => x.id === t.id));
-          list2.appendChild(txRow(srcMonth, t));
-        });
-        body.appendChild(list2);
-      } else {
-        body.appendChild(emptyState("💸", "Aucune opération pour l'instant."));
-      }
-      openModal(`Toutes les opérations — ${esc(period)}`, body);
+      viewAll = true;
+      render();
     });
     view.appendChild(totalCard);
 
@@ -353,6 +416,7 @@
         if (e.target.closest('[data-act="menu"]')) {
           openMonthMenu(m);
         } else {
+          viewAll = false;
           S.setCurrentMonth(m.id);
         }
       });
