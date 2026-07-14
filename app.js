@@ -28,6 +28,12 @@
   };
   const emojiFor = (name, fallback) => CAT_EMOJI[name] || fallback || "•";
 
+  const MONTHS_FR_APP = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+  function realMonthLabel() {
+    const now = new Date();
+    return `${MONTHS_FR_APP[now.getMonth()]} ${now.getFullYear()}`;
+  }
+
   /* ================= RENDU ================= */
 
   function render() {
@@ -74,6 +80,25 @@
         <p class="v num">${F.money(c.pendingExpense)}</p>
       </div>`;
     view.appendChild(stats);
+
+    // Bandeau quand on consulte un mois qui n'est pas le mois réel
+    const realLabel = realMonthLabel();
+    if (m.label !== realLabel) {
+      const st2 = S.getState();
+      const todayM = st2.months.find((x) => x.label === realLabel);
+      const banner = el("div", "month-banner");
+      banner.innerHTML = `<span>📅 Tu consultes <strong>${esc(m.label)}</strong></span>`;
+      if (todayM) {
+        const btn = el("button", "banner-btn");
+        btn.textContent = `Retour à ${realLabel}`;
+        btn.addEventListener("click", () => {
+          S.setCurrentMonth(todayM.id);
+          switchView("home");
+        });
+        banner.appendChild(btn);
+      }
+      view.appendChild(banner);
+    }
 
     const add = el("button", "btn-primary");
     add.innerHTML = `<span class="plus">+</span> Ajouter une opération`;
@@ -269,13 +294,17 @@
     const sec = el("div", "section");
     sec.appendChild(sectionHead("Tes mois", null));
     const list = el("div", "list");
+    const todayLabel = realMonthLabel();
     st.months.slice().reverse().forEach((m) => {
       const c = S.computed(m);
       const isCur = m.id === st.currentMonthId;
+      const isToday = m.label === todayLabel;
       const card = el("div", "month-card" + (isCur ? " current" : ""));
+      const badges = (isCur ? '<span class="badge-current">Sélectionné</span>' : "")
+                   + (isToday ? '<span class="badge-today">Aujourd\'hui</span>' : "");
       card.innerHTML = `
         <div>
-          <p class="ml">${esc(m.label)}${isCur ? '<span class="badge-current">Actuel</span>' : ""}</p>
+          <p class="ml">${esc(m.label)}${badges}</p>
           <p class="ms">${m.transactions.length} opération(s)</p>
         </div>
         <div style="display:flex;align-items:center;gap:6px">
