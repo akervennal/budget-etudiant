@@ -388,7 +388,7 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
   padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
   box-shadow: 0 -8px 40px rgba(20, 32, 29, 0.2);
   animation: slideup 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-  max-height: 90vh; overflow-y: auto;
+  max-height: 90vh; overflow-y: auto; overflow-x: hidden;
 }
 @keyframes slideup { from { transform: translateY(100%); } to { transform: none; } }
 .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -406,12 +406,13 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
 .segment button.active[data-type="income"] { color: var(--income); }
 
 /* Champs */
-.field { margin-bottom: 13px; }
+.field { margin-bottom: 13px; overflow: hidden; }
 .field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
 .field input, .field select {
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  display: block;
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: 11px;
@@ -421,6 +422,11 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field input[type="date"] {
+  -webkit-appearance: textfield;
 }
 .field input:focus, .field select:focus {
   border-color: var(--ok);
