@@ -1,0 +1,1232 @@
+{
+  "version": 1,
+  "categories": [
+    "Restaurant",
+    "Courses",
+    "Transport",
+    "Loisir",
+    "Achat perso",
+    "Matériel photo",
+    "Autre",
+    "Loyer",
+    "Électricité",
+    "Assurance",
+    "Abonnements",
+    "Santé"
+  ],
+  "recurringIncomes": [],
+  "recurringExpenses": [],
+  "months": [
+    {
+      "id": "mrko37m6rf48t",
+      "label": "Mai 2026",
+      "initialBalance": -26.14,
+      "incomes": [],
+      "expenses": [],
+      "transactions": [
+        {
+          "id": "mrko37m6piqfo",
+          "date": "2026-05-04",
+          "type": "income",
+          "category": "Autre",
+          "description": "Virement mensuel (parents)",
+          "amount": 803.0
+        },
+        {
+          "id": "mrko37m6eu66b",
+          "date": "2026-05-04",
+          "type": "expense",
+          "category": "Autre",
+          "description": "Remboursement pret",
+          "amount": 492.55
+        },
+        {
+          "id": "mrko37m6hra9y",
+          "date": "2026-05-04",
+          "type": "income",
+          "category": "Autre",
+          "description": "Contribution Karen - mai",
+          "amount": 445.0
+        },
+        {
+          "id": "mrko37m6o3na1",
+          "date": "2026-05-04",
+          "type": "income",
+          "category": "Autre",
+          "description": "Argent de poche (parents)",
+          "amount": 96.0
+        },
+        {
+          "id": "mrko37m68ksp1",
+          "date": "2026-05-04",
+          "type": "income",
+          "category": "Autre",
+          "description": "Argent de poche (parents)",
+          "amount": 50.0
+        },
+        {
+          "id": "mrko37m6eaq6g",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Loyer",
+          "description": "Loyer Marimo - Mai 2026",
+          "amount": 460.0
+        },
+        {
+          "id": "mrko37m6h29nf",
+          "date": "2026-05-05",
+          "type": "income",
+          "category": "Autre",
+          "description": "1216352BKERVENNAL   042026ME",
+          "amount": 183.0
+        },
+        {
+          "id": "mrko37m666x7g",
+          "date": "2026-05-05",
+          "type": "income",
+          "category": "Autre",
+          "description": "D0000051771067 SYM090058036330",
+          "amount": 18.22
+        },
+        {
+          "id": "mrko37m6tby37",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Courses",
+          "description": "Epicerie",
+          "amount": 17.73
+        },
+        {
+          "id": "mrko37m6vuahm",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "The B-53",
+          "amount": 15.0
+        },
+        {
+          "id": "mrko37m6wjh35",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 14.2
+        },
+        {
+          "id": "mrko37m63rvgw",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "BLACK BEAR LAVA",
+          "amount": 12.0
+        },
+        {
+          "id": "mrko37m6tm7b0",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Autre",
+          "description": "APPRENTIS D AUTEUIL",
+          "amount": 12.0
+        },
+        {
+          "id": "mrko37m6uw2sy",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Loisir",
+          "description": "Pathe",
+          "amount": 11.7
+        },
+        {
+          "id": "mrko37m67t17b",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "BLACK BEAR LAVA",
+          "amount": 8.0
+        },
+        {
+          "id": "mrko37m6dc2k5",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Assurance",
+          "description": "2026050500005980020261872",
+          "amount": 6.82
+        },
+        {
+          "id": "mrko37m6bvn9r",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "BLACK BEAR LAVA",
+          "amount": 6.0
+        },
+        {
+          "id": "mrko37m6dx1ez",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Courses",
+          "description": "L HEDONISTE",
+          "amount": 5.3
+        },
+        {
+          "id": "mrko37m61il2f",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "BLACK BEAR LAVA",
+          "amount": 5.0
+        },
+        {
+          "id": "mrko37m6m5wfx",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Autre",
+          "description": "Frais bancaires",
+          "amount": 4.36
+        },
+        {
+          "id": "mrko37m6mncu8",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "AUX DELICES DE",
+          "amount": 3.8
+        },
+        {
+          "id": "mrko37m6b357s",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "BLACK BEAR LAVA",
+          "amount": 3.0
+        },
+        {
+          "id": "mrko37m6lq4uc",
+          "date": "2026-05-05",
+          "type": "expense",
+          "category": "Courses",
+          "description": "Epicerie",
+          "amount": 2.61
+        },
+        {
+          "id": "mrko37m60mfw3",
+          "date": "2026-05-06",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 16.0
+        },
+        {
+          "id": "mrko37m61ajbg",
+          "date": "2026-05-06",
+          "type": "expense",
+          "category": "Courses",
+          "description": "Epicerie",
+          "amount": 7.22
+        },
+        {
+          "id": "mrko37m6u9ps2",
+          "date": "2026-05-06",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Lavage voiture",
+          "amount": 6.0
+        },
+        {
+          "id": "mrko37m6bt2cm",
+          "date": "2026-05-07",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Planity (coiffeur)",
+          "amount": 16.0
+        },
+        {
+          "id": "mrko37m6rp3oq",
+          "date": "2026-05-07",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Intermarche Laval",
+          "amount": 7.51
+        },
+        {
+          "id": "mrko37m64gpyz",
+          "date": "2026-05-07",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 1.8
+        },
+        {
+          "id": "mrko37m6vn9tx",
+          "date": "2026-05-12",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "5PM",
+          "amount": 140.0
+        },
+        {
+          "id": "mrko37m6c5npw",
+          "date": "2026-05-12",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Frip in Shop",
+          "amount": 119.0
+        },
+        {
+          "id": "mrko37m63cw0m",
+          "date": "2026-05-12",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "CHEZ MAMAN",
+          "amount": 37.15
+        },
+        {
+          "id": "mrko37m6a66ab",
+          "date": "2026-05-12",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Five Guys",
+          "amount": 21.7
+        },
+        {
+          "id": "mrko37m6es73o",
+          "date": "2026-05-12",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Bonhomme (coiffeur)",
+          "amount": 16.0
+        },
+        {
+          "id": "mrko37m64urd9",
+          "date": "2026-05-12",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 12.0
+        },
+        {
+          "id": "mrko37m6jfqjx",
+          "date": "2026-05-12",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 12.0
+        },
+        {
+          "id": "mrko37m67m03q",
+          "date": "2026-05-12",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "LE COMMERCE",
+          "amount": 9.4
+        },
+        {
+          "id": "mrko37m6h7rz0",
+          "date": "2026-05-13",
+          "type": "expense",
+          "category": "Autre",
+          "description": "Remboursement",
+          "amount": 40.0
+        },
+        {
+          "id": "mrko37m68s7yp",
+          "date": "2026-05-13",
+          "type": "expense",
+          "category": "Courses",
+          "description": "C Market",
+          "amount": 13.16
+        },
+        {
+          "id": "mrko37m6hub7g",
+          "date": "2026-05-13",
+          "type": "expense",
+          "category": "Courses",
+          "description": "Da Diffusion",
+          "amount": 0.45
+        },
+        {
+          "id": "mrko37m6xmlwk",
+          "date": "2026-05-15",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Lavage voiture",
+          "amount": 6.0
+        },
+        {
+          "id": "mrko37m6y88do",
+          "date": "2026-05-15",
+          "type": "expense",
+          "category": "Courses",
+          "description": "Boulangerie",
+          "amount": 3.7
+        },
+        {
+          "id": "mrko37m65l72v",
+          "date": "2026-05-18",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 14.2
+        },
+        {
+          "id": "mrko37m6ewlac",
+          "date": "2026-05-19",
+          "type": "expense",
+          "category": "Loisir",
+          "description": "Location loisir",
+          "amount": 36.0
+        },
+        {
+          "id": "mrko37m6yzqn8",
+          "date": "2026-05-19",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 1.8
+        },
+        {
+          "id": "mrko37m6ehwg3",
+          "date": "2026-05-20",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 26.5
+        },
+        {
+          "id": "mrko37m6390zb",
+          "date": "2026-05-20",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "La Poste",
+          "amount": 7.76
+        },
+        {
+          "id": "mrko37m6hh1ay",
+          "date": "2026-05-22",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Cordonnerie",
+          "amount": 38.0
+        },
+        {
+          "id": "mrko37m6zoijr",
+          "date": "2026-05-22",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "PIZZA BIO",
+          "amount": 24.8
+        },
+        {
+          "id": "mrko37m64x4bl",
+          "date": "2026-05-22",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 10.2
+        },
+        {
+          "id": "mrko37m65jwhr",
+          "date": "2026-05-22",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "LE MOLIERE",
+          "amount": 9.8
+        },
+        {
+          "id": "mrko37m6mhiam",
+          "date": "2026-05-22",
+          "type": "expense",
+          "category": "Transport",
+          "description": "T4YCDMX52HU2 WW",
+          "amount": 1.7
+        },
+        {
+          "id": "mrko37m6ftl8i",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Air France",
+          "amount": 172.32
+        },
+        {
+          "id": "mrko37m6b1zfo",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 27.0
+        },
+        {
+          "id": "mrko37m6t2he6",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "LE ZING CAFE",
+          "amount": 20.0
+        },
+        {
+          "id": "mrko37m6tcmam",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 12.0
+        },
+        {
+          "id": "mrko37m6ryqve",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "L AS DU BRIOCHE",
+          "amount": 11.5
+        },
+        {
+          "id": "mrko37m6yi4d9",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "McDonald's",
+          "amount": 10.8
+        },
+        {
+          "id": "mrko37m6mebul",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Peage autoroute",
+          "amount": 10.4
+        },
+        {
+          "id": "mrko37m6hygkp",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Peage autoroute",
+          "amount": 10.4
+        },
+        {
+          "id": "mrko37m6rb09m",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "LE COMMERCE",
+          "amount": 8.9
+        },
+        {
+          "id": "mrko37m6cndg7",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 1.8
+        },
+        {
+          "id": "mrko37m6vxx21",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Transport",
+          "description": "T4YCDMX52JER WW",
+          "amount": 1.7
+        },
+        {
+          "id": "mrko37m6a78my",
+          "date": "2026-05-26",
+          "type": "expense",
+          "category": "Courses",
+          "description": "Epicerie",
+          "amount": 0.67
+        },
+        {
+          "id": "mrko37m6wk5ar",
+          "date": "2026-05-27",
+          "type": "income",
+          "category": "Autre",
+          "description": "Contribution Karen - mai",
+          "amount": 445.0
+        },
+        {
+          "id": "mrko37m6qj3n6",
+          "date": "2026-05-27",
+          "type": "income",
+          "category": "Autre",
+          "description": "Contribution Karen - double loyer mai",
+          "amount": 306.0
+        },
+        {
+          "id": "mrko37m6uhtje",
+          "date": "2026-05-27",
+          "type": "income",
+          "category": "Autre",
+          "description": "Virement compte courant",
+          "amount": 280.0
+        },
+        {
+          "id": "mrko37m64vwc6",
+          "date": "2026-05-27",
+          "type": "income",
+          "category": "Autre",
+          "description": "Argent de poche (parents)",
+          "amount": 50.0
+        },
+        {
+          "id": "mrko37m69ir5f",
+          "date": "2026-05-27",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 12.0
+        },
+        {
+          "id": "mrko37m6er5wo",
+          "date": "2026-05-27",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 1.8
+        },
+        {
+          "id": "mrko37m6idz3e",
+          "date": "2026-05-27",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 1.5
+        },
+        {
+          "id": "mrko37m6q4hwg",
+          "date": "2026-05-28",
+          "type": "expense",
+          "category": "Électricité",
+          "description": "MANDAT 00S020788116",
+          "amount": 58.0
+        },
+        {
+          "id": "mrko37m6oqdfl",
+          "date": "2026-05-29",
+          "type": "expense",
+          "category": "Loyer",
+          "description": "Loyer Peltier (mai)",
+          "amount": 440.0
+        }
+      ]
+    },
+    {
+      "id": "mrko37m6iy7n8",
+      "label": "Juin 2026",
+      "initialBalance": 113.37,
+      "incomes": [],
+      "expenses": [],
+      "transactions": [
+        {
+          "id": "mrko37m6vy3jn",
+          "date": "2026-06-01",
+          "type": "income",
+          "category": "Autre",
+          "description": "Virement mensuel (parents)",
+          "amount": 803.0
+        },
+        {
+          "id": "mrko37m6nh2vp",
+          "date": "2026-06-02",
+          "type": "expense",
+          "category": "Autre",
+          "description": "Frais bancaires",
+          "amount": 4.36
+        },
+        {
+          "id": "mrko37m6o179e",
+          "date": "2026-06-03",
+          "type": "income",
+          "category": "Autre",
+          "description": "Argent de poche (parents)",
+          "amount": 96.0
+        },
+        {
+          "id": "mrko37m67mz3d",
+          "date": "2026-06-04",
+          "type": "expense",
+          "category": "Autre",
+          "description": "Remboursement pret",
+          "amount": 492.55
+        },
+        {
+          "id": "mrko37m64iz7v",
+          "date": "2026-06-05",
+          "type": "expense",
+          "category": "Loyer",
+          "description": "Loyer Marimo - Juin 2026",
+          "amount": 306.66
+        },
+        {
+          "id": "mrko37m6fh14h",
+          "date": "2026-06-05",
+          "type": "income",
+          "category": "Autre",
+          "description": "1216352BKERVENNAL   052026ME",
+          "amount": 183.0
+        },
+        {
+          "id": "mrko37m6i2ohr",
+          "date": "2026-06-05",
+          "type": "expense",
+          "category": "Assurance",
+          "description": "2026060500006050020261358",
+          "amount": 10.44
+        },
+        {
+          "id": "mrko37m6rd6z3",
+          "date": "2026-06-05",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 1.8
+        },
+        {
+          "id": "mrko37m65ctdp",
+          "date": "2026-06-08",
+          "type": "income",
+          "category": "Autre",
+          "description": "Remboursement SHIFT 2026 (parents)",
+          "amount": 35.0
+        },
+        {
+          "id": "mrko37m63nm2s",
+          "date": "2026-06-08",
+          "type": "expense",
+          "category": "Loisir",
+          "description": "Billet SHIFT 2026",
+          "amount": 35.0
+        },
+        {
+          "id": "mrko37m60z6td",
+          "date": "2026-06-08",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 22.0
+        },
+        {
+          "id": "mrko37m60q19i",
+          "date": "2026-06-08",
+          "type": "expense",
+          "category": "Autre",
+          "description": "VIREMENT DE M. KERVENNAL ARMEL",
+          "amount": 19.0
+        },
+        {
+          "id": "mrko37m6aqbf5",
+          "date": "2026-06-08",
+          "type": "expense",
+          "category": "Courses",
+          "description": "A nos mousses",
+          "amount": 3.0
+        },
+        {
+          "id": "mrko37m6ak515",
+          "date": "2026-06-08",
+          "type": "expense",
+          "category": "Transport",
+          "description": "89QGO9Z56198 WW",
+          "amount": 1.7
+        },
+        {
+          "id": "mrko37m6gbffj",
+          "date": "2026-06-09",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "MAN D PIZZA",
+          "amount": 8.0
+        },
+        {
+          "id": "mrko37m6d90gb",
+          "date": "2026-06-09",
+          "type": "expense",
+          "category": "Courses",
+          "description": "A nos mousses",
+          "amount": 3.5
+        },
+        {
+          "id": "mrko37m63tkk3",
+          "date": "2026-06-10",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Planity (coiffeur)",
+          "amount": 16.0
+        },
+        {
+          "id": "mrko37m63b1cc",
+          "date": "2026-06-15",
+          "type": "expense",
+          "category": "Autre",
+          "description": "Weekend Pierre-Yves",
+          "amount": 80.0
+        },
+        {
+          "id": "mrko37m69b873",
+          "date": "2026-06-15",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Bonhomme (coiffeur)",
+          "amount": 16.0
+        },
+        {
+          "id": "mrko37m6378wr",
+          "date": "2026-06-15",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 2.9
+        },
+        {
+          "id": "mrko37m6x2fie",
+          "date": "2026-06-16",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 19.0
+        },
+        {
+          "id": "mrko37m6xl310",
+          "date": "2026-06-16",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Burger King",
+          "amount": 14.15
+        },
+        {
+          "id": "mrko37m6v01ak",
+          "date": "2026-06-16",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 10.0
+        },
+        {
+          "id": "mrko37m68eirh",
+          "date": "2026-06-16",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "BLACK BEAR LAVA",
+          "amount": 7.0
+        },
+        {
+          "id": "mrko37m6tnaut",
+          "date": "2026-06-17",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Fnac",
+          "amount": 49.99
+        },
+        {
+          "id": "mrko37m60kmmq",
+          "date": "2026-06-17",
+          "type": "expense",
+          "category": "Courses",
+          "description": "C Market",
+          "amount": 25.64
+        },
+        {
+          "id": "mrko37m6d7t55",
+          "date": "2026-06-17",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 1.0
+        },
+        {
+          "id": "mrko37m6ejfep",
+          "date": "2026-06-18",
+          "type": "expense",
+          "category": "Courses",
+          "description": "Epicerie",
+          "amount": 3.39
+        },
+        {
+          "id": "mrko37m609vv9",
+          "date": "2026-06-18",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 1.8
+        },
+        {
+          "id": "mrko37m6tmhrg",
+          "date": "2026-06-19",
+          "type": "income",
+          "category": "Autre",
+          "description": "Argent stage Allemagne (parents)",
+          "amount": 275.0
+        },
+        {
+          "id": "mrko37m6olywa",
+          "date": "2026-06-19",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 12.0
+        },
+        {
+          "id": "mrko37m67hl8n",
+          "date": "2026-06-19",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "LAVAL OTLL",
+          "amount": 8.5
+        },
+        {
+          "id": "mrko37m63xijk",
+          "date": "2026-06-22",
+          "type": "income",
+          "category": "Autre",
+          "description": "Contribution voyage Berlin (Karen)",
+          "amount": 500.0
+        },
+        {
+          "id": "mrko37m60xezz",
+          "date": "2026-06-22",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 118.0
+        },
+        {
+          "id": "mrko37m66ek3x",
+          "date": "2026-06-22",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Mehas Doner Berlin",
+          "amount": 20.0
+        },
+        {
+          "id": "mrko37m6oni99",
+          "date": "2026-06-22",
+          "type": "expense",
+          "category": "Loisir",
+          "description": "DDR Museum Berlin",
+          "amount": 13.9
+        },
+        {
+          "id": "mrko37m6qnq4z",
+          "date": "2026-06-22",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Gelateria Italy Berlin",
+          "amount": 8.0
+        },
+        {
+          "id": "mrko37m60cqxe",
+          "date": "2026-06-22",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Deutsche Bahn",
+          "amount": 5.0
+        },
+        {
+          "id": "mrko37m6s0pbs",
+          "date": "2026-06-22",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 4.0
+        },
+        {
+          "id": "mrko37m6ocdbu",
+          "date": "2026-06-22",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 4.0
+        },
+        {
+          "id": "mrko37m66k7fz",
+          "date": "2026-06-22",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 1.8
+        },
+        {
+          "id": "mrko37m6x8trv",
+          "date": "2026-06-23",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Five Guys",
+          "amount": 17.9
+        },
+        {
+          "id": "mrko37m6xybz2",
+          "date": "2026-06-23",
+          "type": "expense",
+          "category": "Autre",
+          "description": "Bricomarche",
+          "amount": 16.7
+        },
+        {
+          "id": "mrko37m6zyem0",
+          "date": "2026-06-23",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 14.0
+        },
+        {
+          "id": "mrko37m6077aw",
+          "date": "2026-06-23",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Mustafa Cans Berlin",
+          "amount": 13.0
+        },
+        {
+          "id": "mrko37m6ioexz",
+          "date": "2026-06-23",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Hokey P Berlin",
+          "amount": 12.8
+        },
+        {
+          "id": "mrko37m65j8cv",
+          "date": "2026-06-23",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 12.0
+        },
+        {
+          "id": "mrko37m6dpa2k",
+          "date": "2026-06-23",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 4.0
+        },
+        {
+          "id": "mrko37m6clv21",
+          "date": "2026-06-23",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Intermarche Laval",
+          "amount": 2.85
+        },
+        {
+          "id": "mrko37m60gclr",
+          "date": "2026-06-24",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Murphy's Berlin",
+          "amount": 13.9
+        },
+        {
+          "id": "mrko37m6cswem",
+          "date": "2026-06-24",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Cafe Plazebo Berlin",
+          "amount": 10.2
+        },
+        {
+          "id": "mrko37m65m2pu",
+          "date": "2026-06-24",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Murphy's Berlin",
+          "amount": 4.0
+        },
+        {
+          "id": "mrko37m6sgvl2",
+          "date": "2026-06-24",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 4.0
+        },
+        {
+          "id": "mrko37m6t8o89",
+          "date": "2026-06-24",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 4.0
+        },
+        {
+          "id": "mrko37m6bomsj",
+          "date": "2026-06-25",
+          "type": "expense",
+          "category": "Loisir",
+          "description": "Musee espionnage Berlin",
+          "amount": 36.0
+        },
+        {
+          "id": "mrko37m64uvi5",
+          "date": "2026-06-25",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Bar Berlin",
+          "amount": 16.9
+        },
+        {
+          "id": "mrko37m6almbg",
+          "date": "2026-06-25",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 4.0
+        },
+        {
+          "id": "mrko37m6jpuul",
+          "date": "2026-06-25",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Lime (trottinette)",
+          "amount": 3.61
+        },
+        {
+          "id": "mrko37m6cqox9",
+          "date": "2026-06-25",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Cafe Berlin",
+          "amount": 2.5
+        },
+        {
+          "id": "mrko37m6zymae",
+          "date": "2026-06-26",
+          "type": "expense",
+          "category": "Électricité",
+          "description": "MANDAT 00S020788116",
+          "amount": 58.0
+        },
+        {
+          "id": "mrko37m61c5os",
+          "date": "2026-06-26",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Pasta & Passion Berlin",
+          "amount": 15.5
+        },
+        {
+          "id": "mrko37m6cqmc1",
+          "date": "2026-06-26",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Media Markt",
+          "amount": 14.99
+        },
+        {
+          "id": "mrko37m63f0q1",
+          "date": "2026-06-26",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Lime (trottinette)",
+          "amount": 11.28
+        },
+        {
+          "id": "mrko37m625q9x",
+          "date": "2026-06-26",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Atomica Fun Berlin",
+          "amount": 10.0
+        },
+        {
+          "id": "mrko37m6qej77",
+          "date": "2026-06-29",
+          "type": "income",
+          "category": "Autre",
+          "description": "Remboursement SNCF-VOYAGEURS",
+          "amount": 69.0
+        },
+        {
+          "id": "mrko37m6fbt10",
+          "date": "2026-06-29",
+          "type": "expense",
+          "category": "Transport",
+          "description": "SNCF",
+          "amount": 69.0
+        },
+        {
+          "id": "mrko37m6zdnqn",
+          "date": "2026-06-29",
+          "type": "expense",
+          "category": "Courses",
+          "description": "Kaufland Berlin",
+          "amount": 17.74
+        },
+        {
+          "id": "mrko37m6txis1",
+          "date": "2026-06-29",
+          "type": "expense",
+          "category": "Restaurant",
+          "description": "Burger King",
+          "amount": 16.49
+        },
+        {
+          "id": "mrko37m60jmvo",
+          "date": "2026-06-29",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Planity (coiffeur)",
+          "amount": 16.0
+        },
+        {
+          "id": "mrko37m6nsrli",
+          "date": "2026-06-29",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "Bonhomme (coiffeur)",
+          "amount": 16.0
+        },
+        {
+          "id": "mrko37m6ac9rs",
+          "date": "2026-06-29",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 14.0
+        },
+        {
+          "id": "mrko37m6vvxjn",
+          "date": "2026-06-29",
+          "type": "expense",
+          "category": "Transport",
+          "description": "Transport en commun",
+          "amount": 5.0
+        },
+        {
+          "id": "mrko37m6vcgr8",
+          "date": "2026-06-29",
+          "type": "expense",
+          "category": "Achat perso",
+          "description": "RELAY (FRANCE)",
+          "amount": 3.95
+        },
+        {
+          "id": "mrko37m6kvr30",
+          "date": "2026-06-29",
+          "type": "expense",
+          "category": "Courses",
+          "description": "THEO AUTOMATEN (ALLEMAGNE)",
+          "amount": 3.8
+        },
+        {
+          "id": "mrko37m67i1q8",
+          "date": "2026-06-30",
+          "type": "expense",
+          "category": "Transport",
+          "description": "89QGO9Z5BEKO WW",
+          "amount": 1.7
+        }
+      ]
+    },
+    {
+      "id": "mrko37m6ml9v4",
+      "label": "Juillet 2026",
+      "initialBalance": 258.48,
+      "incomes": [],
+      "expenses": [],
+      "transactions": []
+    }
+  ],
+  "currentMonthId": "mrko37m6ml9v4"
+}

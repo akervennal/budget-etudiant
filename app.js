@@ -24,7 +24,7 @@
     Restaurant: "🍽️", Courses: "🛒", Transport: "🚌", Loisir: "🎬",
     "Achat perso": "🛍️", "Matériel photo": "📷", Autre: "💸",
     Loyer: "🏠", "Electricité": "💡", Électricité: "💡", Internet: "🌐",
-    Assurance: "🛡️", Abonnements: "🔁", Salaire: "💼",
+    Assurance: "🛡️", Abonnements: "🔁", Salaire: "💼", "Santé": "💊",
   };
   const emojiFor = (name, fallback) => CAT_EMOJI[name] || fallback || "•";
 
@@ -314,6 +314,22 @@
     // Données
     const dataSec = el("div", "section");
     dataSec.appendChild(sectionHead("Données", null));
+    const importBtn = el("button", "btn-ghost");
+    importBtn.textContent = "⬇ Importer mai & juin (BNP export)";
+    importBtn.style.marginBottom = "10px";
+    importBtn.addEventListener("click", () => {
+      if (!confirm("Importer mai et juin depuis l'export BNP ? Les données actuelles seront remplacées.")) return;
+      fetch("import-state.json")
+        .then((r) => r.json())
+        .then((state) => {
+          localStorage.setItem("budget-etudiant.v1", JSON.stringify(state));
+          alert("Import réussi ! L'app va se recharger.");
+          location.reload();
+        })
+        .catch(() => alert("Erreur : impossible de charger import-state.json"));
+    });
+    dataSec.appendChild(importBtn);
+
     const reset = el("button", "btn-danger-ghost");
     reset.textContent = "Tout réinitialiser";
     reset.addEventListener("click", () => {
