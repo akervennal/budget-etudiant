@@ -487,6 +487,10 @@
 
   function init() {
     if (!load()) seed();
+    // Migration : ajoute les catégories manquantes sans écraser l'existant
+    ["Prêt", "Santé"].forEach((c) => {
+      if (!state.categories.includes(c)) state.categories.push(c);
+    });
     autoCheckState();
     save();
   }
