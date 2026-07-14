@@ -388,10 +388,9 @@
       : `${st.months[0].label} → ${lastM.label}`;
     const totalCard = el("div", "month-card total-card" + (viewAll ? " current" : ""));
     totalCard.style.cursor = "pointer";
-    const totalBadge = viewAll ? '<span class="badge-current">Sélectionné</span>' : "";
     totalCard.innerHTML = `
       <div style="width:100%">
-        <p class="ml">Depuis le début${totalBadge} <span class="ms" style="margin-left:6px">${esc(period)}</span></p>
+        <p class="ml">Depuis le début <span class="ms" style="margin-left:6px">${esc(period)}</span></p>
         <div class="total-grid">
           <div><p class="ms">Solde actuel</p><p class="mv num ${curBal < 0 ? "neg" : ""}">${F.money(curBal)}</p></div>
           <div><p class="ms">Total revenus</p><p class="mv num income">${F.money(totalInc)}</p></div>
@@ -412,8 +411,7 @@
       const isCur = m.id === st.currentMonthId && !viewAll;
       const isToday = m.label === todayLabel;
       const card = el("div", "month-card" + (isCur ? " current" : ""));
-      const badges = (isCur ? '<span class="badge-current">Sélectionné</span>' : "")
-                   + (isToday ? '<span class="badge-today">Aujourd\'hui</span>' : "");
+      const badges = isToday ? '<span class="badge-today">Aujourd\'hui</span>' : "";
       card.innerHTML = `
         <div>
           <p class="ml">${esc(m.label)}${badges}</p>
