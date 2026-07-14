@@ -98,17 +98,17 @@
       view.appendChild(sec);
     }
 
-    // Dernières opérations
-    const sec = el("div", "section");
-    sec.appendChild(sectionHead("Dernières opérations", m.transactions.length ? "Tout voir" : null, () => switchView("history")));
+    // Résumé par catégorie
+    renderCatSummary(m, view);
+
+    // Lien vers l'historique
     if (m.transactions.length) {
-      const list = el("div", "list");
-      m.transactions.slice().reverse().slice(0, 4).forEach((t) => list.appendChild(txRow(m, t)));
-      sec.appendChild(list);
-    } else {
-      sec.appendChild(emptyState("💸", "Aucune opération pour l'instant. Ajoute ta première dépense."));
+      const link = el("button", "btn-ghost");
+      link.textContent = "Voir toutes les opérations →";
+      link.style.marginTop = "4px";
+      link.addEventListener("click", () => switchView("history"));
+      view.appendChild(link);
     }
-    view.appendChild(sec);
   }
 
   function recurringRow(m, kind, item) {
