@@ -79,9 +79,40 @@
 
   /* ---------- persistance ---------- */
 
+  // IndexedDB — miroir de secours (iOS vide rarement IDB contrairement à localStorage)
+  const IDB_NAME = "budget-etudiant-idb";
+  const IDB_STORE = "data";
+
+  function idbOpen() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open(IDB_NAME, 1);
+      r.onupgradeneeded = () => r.result.createObjectStore(IDB_STORE);
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+
+  function idbSave(json) {
+    idbOpen().then((db) => {
+      const tx = db.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).put(json, "main");
+    }).catch(() => {});
+  }
+
+  function idbLoad() {
+    return idbOpen().then((db) => new Promise((res) => {
+      const tx = db.transaction(IDB_STORE, "readonly");
+      const r = tx.objectStore(IDB_STORE).get("main");
+      r.onsuccess = () => res(r.result || null);
+      r.onerror = () => res(null);
+    })).catch(() => null);
+  }
+
   function save() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const json = JSON.stringify(state);
+      localStorage.setItem(STORAGE_KEY, json);
+      idbSave(json); // miroir async, silencieux
     } catch (e) {
       console.warn("Sauvegarde impossible :", e);
     }
@@ -95,7 +126,7 @@
         return true;
       }
     } catch (e) {
-      console.warn("Lecture impossible :", e);
+      console.warn("Lecture localStorage impossible :", e);
     }
     return false;
   }
@@ -485,14 +516,34 @@
     notify();
   }
 
-  function init() {
-    if (!load()) seed();
-    // Migration : ajoute les catégories manquantes sans écraser l'existant
+  function migrate() {
     ["Prêt", "Santé"].forEach((c) => {
       if (!state.categories.includes(c)) state.categories.push(c);
     });
-    autoCheckState();
-    save();
+  }
+
+  function init() {
+    if (load()) {
+      migrate();
+      autoCheckState();
+      save();
+    } else {
+      // localStorage vide → tente la récupération depuis IndexedDB
+      idbLoad().then((json) => {
+        if (json) {
+          try {
+            state = JSON.parse(json);
+            migrate();
+            autoCheckState();
+            save(); // restaure dans localStorage
+            notify(); // re-render avec les données récupérées
+            return;
+          } catch (e) {}
+        }
+        seed();
+        notify();
+      });
+    }
   }
 
   Budget.store = {
