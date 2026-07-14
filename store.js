@@ -28,6 +28,7 @@
     "Loisir",
     "Achat perso",
     "Matériel photo",
+    "Prêt",
     "Autre",
   ];
 
@@ -107,6 +108,7 @@
       name: t.name,
       amount: t.amount,
       day: t.day || null,
+      category: t.category || "Autre",
       done: false,
     }));
   }
@@ -286,9 +288,9 @@
 
   /* ---------- récurrents (modèles) ---------- */
 
-  function addRecurring(kind, name, amount, day) {
+  function addRecurring(kind, name, amount, day, category) {
     const list = kind === "income" ? state.recurringIncomes : state.recurringExpenses;
-    const tpl = { id: uid(), name: name.trim(), amount: Math.abs(amount) || 0, day: day || null };
+    const tpl = { id: uid(), name: name.trim(), amount: Math.abs(amount) || 0, day: day || null, category: category || "Autre" };
     list.push(tpl);
     // Répercute sur le mois courant (mais pas les mois passés)
     const m = currentMonth();
@@ -298,6 +300,7 @@
       name: tpl.name,
       amount: tpl.amount,
       day: tpl.day,
+      category: tpl.category,
       done: false,
     });
     rechain();
@@ -315,7 +318,7 @@
     const snap = (kind === "income" ? m.incomes : m.expenses).find(
       (x) => x.templateId === tplId && !x.done
     );
-    if (snap) Object.assign(snap, { name: tpl.name, amount: tpl.amount, day: tpl.day });
+    if (snap) Object.assign(snap, { name: tpl.name, amount: tpl.amount, day: tpl.day, category: tpl.category });
     rechain();
     notify();
   }

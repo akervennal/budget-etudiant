@@ -24,7 +24,7 @@
     Restaurant: "🍽️", Courses: "🛒", Transport: "🚌", Loisir: "🎬",
     "Achat perso": "🛍️", "Matériel photo": "📷", Autre: "💸",
     Loyer: "🏠", "Electricité": "💡", Électricité: "💡", Internet: "🌐",
-    Assurance: "🛡️", Abonnements: "🔁", Salaire: "💼", "Santé": "💊",
+    Assurance: "🛡️", Abonnements: "🔁", Salaire: "💼", "Santé": "💊", "Prêt": "🏦",
   };
   const emojiFor = (name, fallback) => CAT_EMOJI[name] || fallback || "•";
 
@@ -595,15 +595,25 @@
 
   // Modale ajout / édition d'un récurrent
   function openRecurringModal(kind, existing) {
+    const st = S.getState();
+    const catOptions = st.categories.map((c) =>
+      `<option ${existing && existing.category === c ? "selected" : ((!existing && c === "Autre") ? "selected" : "")}>${esc(c)}</option>`
+    ).join("");
     const body = el("div");
     body.innerHTML = `
       <div class="field">
         <label>Nom</label>
         <input id="r-name" type="text" placeholder="${kind === "income" ? "Ex : Salaire, argent parents" : "Ex : Loyer, internet"}" value="${existing ? esc(existing.name) : ""}">
       </div>
-      <div class="field amount">
-        <label>Montant par mois</label>
-        <input id="r-amount" type="text" inputmode="decimal" placeholder="0,00" value="${existing ? existing.amount : ""}">
+      <div class="field-row">
+        <div class="field amount">
+          <label>Montant / mois</label>
+          <input id="r-amount" type="text" inputmode="decimal" placeholder="0,00" value="${existing ? existing.amount : ""}">
+        </div>
+        <div class="field">
+          <label>Catégorie</label>
+          <select id="r-cat">${catOptions}</select>
+        </div>
       </div>
       <div class="field">
         <label>Jour du mois (optionnel)</label>
@@ -628,8 +638,9 @@
       if (!amount || amount <= 0) { $("#r-amount", body).focus(); return; }
       const dayVal = parseInt($("#r-day", body).value, 10);
       const day = dayVal >= 1 && dayVal <= 31 ? dayVal : null;
-      if (existing) S.updateRecurring(kind, existing.id, { name, amount, day });
-      else S.addRecurring(kind, name, amount, day);
+      const category = $("#r-cat", body).value;
+      if (existing) S.updateRecurring(kind, existing.id, { name, amount, day, category });
+      else S.addRecurring(kind, name, amount, day, category);
       closeModal();
     });
     if (existing) {
