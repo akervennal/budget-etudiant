@@ -313,22 +313,48 @@
     const period = st.months.length === 1
       ? st.months[0].label
       : `${st.months[0].label} → ${st.months[st.months.length - 1].label}`;
+
     const head = el("div", "section-head");
     head.style.marginTop = "4px";
-    head.innerHTML = `<h2 class="section-title">Toutes les opérations — ${esc(period)}</h2>`;
+    head.innerHTML = `<h2 class="section-title">Évolution — ${esc(period)}</h2>`;
     view.appendChild(head);
 
-    const sorted = allTxSorted();
-    if (!sorted.length) {
-      view.appendChild(emptyState("📈", "Aucune opération pour l'instant."));
+    const hasAny = st.months.some((m) => m.transactions.length > 0 || m.incomes.some((i) => i.done) || m.expenses.some((e) => e.done));
+    if (!hasAny) {
+      view.appendChild(emptyState("📈", "L'historique se remplit dès que tu ajoutes des opérations."));
       return;
     }
-    const list = el("div", "list");
-    sorted.forEach((t) => {
-      const srcMonth = st.months.find((m) => m.transactions.some((x) => x.id === t.id));
-      list.appendChild(txRow(srcMonth, t));
+
+    const tl = el("div", "timeline");
+    st.months.forEach((m, idx) => {
+      if (idx > 0) {
+        const sep = el("div", "tl-month-sep");
+        sep.textContent = m.label;
+        tl.appendChild(sep);
+      }
+      S.timeline(m.id).forEach((ev) => {
+        const row = el("div", "tl-row" + (ev.kind === "start" ? " start" : ""));
+        const deltaHtml = ev.delta == null
+          ? ""
+          : `<div class="tl-delta ${ev.delta >= 0 ? "pos" : "neg"} num">${F.signed(ev.delta)}</div>`;
+        row.innerHTML = `
+          <div class="tl-date num">${ev.date ? F.dayMonth(ev.date) : ""}</div>
+          <div class="tl-main">
+            <p class="t">${esc(ev.label)}</p>
+            ${ev.category ? `<p class="s">${esc(ev.category)}</p>` : ev.kind === "recurring" ? `<p class="s">Récurrent</p>` : ""}
+          </div>
+          <div class="tl-right">
+            ${deltaHtml}
+            <div class="tl-bal num">${F.money(ev.balance)}</div>
+          </div>`;
+        if (ev.kind === "transaction") {
+          row.style.cursor = "pointer";
+          row.addEventListener("click", () => openTxModal(m.id, m.transactions.find((t) => t.id === ev.id)));
+        }
+        tl.appendChild(row);
+      });
     });
-    view.appendChild(list);
+    view.appendChild(tl);
   }
 
   /* ---------- Mois ---------- */
@@ -395,7 +421,7 @@
     const todayLabel = realMonthLabel();
     st.months.slice().reverse().forEach((m) => {
       const c = S.computed(m);
-      const isCur = m.id === st.currentMonthId;
+      const isCur = m.id === st.currentMonthId && !viewAll;
       const isToday = m.label === todayLabel;
       const card = el("div", "month-card" + (isCur ? " current" : ""));
       const badges = (isCur ? '<span class="badge-current">Sélectionné</span>' : "")
