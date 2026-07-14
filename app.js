@@ -37,7 +37,25 @@
 
   /* ================= RENDU ================= */
 
+  function updateHeader() {
+    const dateEl = document.getElementById("headerDate");
+    const ctxEl = document.getElementById("headerCtx");
+    if (dateEl) dateEl.textContent = F.headerDate();
+    if (ctxEl) {
+      if (viewAll) {
+        ctxEl.textContent = "Toutes périodes";
+        ctxEl.style.display = "";
+      } else {
+        const m = S.currentMonth();
+        const isReal = m.label === realMonthLabel();
+        ctxEl.textContent = isReal ? "" : m.label;
+        ctxEl.style.display = isReal ? "none" : "";
+      }
+    }
+  }
+
   function render() {
+    updateHeader();
     if (currentView === "months") { renderMonths(); return; }
     if (currentView === "settings") { renderSettings(); return; }
     if (viewAll) {

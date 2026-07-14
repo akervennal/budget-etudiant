@@ -28,5 +28,9 @@
     return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
   }
 
-  Budget.format = { money, signed, todayISO, fullDate, dayMonth };
+  function headerDate() {
+    return new Date().toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
+  }
+
+  Budget.format = { money, signed, todayISO, fullDate, dayMonth, headerDate };
 })(window.Budget = window.Budget || {});
