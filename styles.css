@@ -438,7 +438,7 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
 }
 
 /* ── Carte total depuis le début ── */
-.total-card { margin-top: 14px; margin-bottom: 6px; }
+.total-card { margin-top: 14px; margin-bottom: 0; }
 .total-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

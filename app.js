@@ -39,19 +39,7 @@
 
   function updateHeader() {
     const dateEl = document.getElementById("headerDate");
-    const ctxEl = document.getElementById("headerCtx");
     if (dateEl) dateEl.textContent = F.headerDate();
-    if (ctxEl) {
-      if (viewAll) {
-        ctxEl.textContent = "Toutes périodes";
-        ctxEl.style.display = "";
-      } else {
-        const m = S.currentMonth();
-        const isReal = m.label === realMonthLabel();
-        ctxEl.textContent = isReal ? "" : m.label;
-        ctxEl.style.display = isReal ? "none" : "";
-      }
-    }
   }
 
   function render() {
@@ -148,15 +136,6 @@
 
     // Résumé par catégorie
     renderCatSummary(m, view);
-
-    // Lien vers l'historique
-    if (m.transactions.length) {
-      const link = el("button", "btn-ghost");
-      link.textContent = "Voir toutes les opérations →";
-      link.style.marginTop = "4px";
-      link.addEventListener("click", () => switchView("history"));
-      view.appendChild(link);
-    }
   }
 
   function recurringRow(m, kind, item) {
@@ -314,14 +293,6 @@
     view.appendChild(stats);
 
     renderCatSummary({ transactions: allTx }, view);
-
-    if (allTx.length) {
-      const link = el("button", "btn-ghost");
-      link.textContent = "Voir toutes les opérations →";
-      link.style.marginTop = "4px";
-      link.addEventListener("click", () => switchView("history"));
-      view.appendChild(link);
-    }
   }
 
   function renderHistoryAll() {
@@ -434,7 +405,6 @@
     view.appendChild(totalCard);
 
     const sec = el("div", "section");
-    sec.appendChild(sectionHead("Tes mois", null));
     const list = el("div", "list");
     const todayLabel = realMonthLabel();
     st.months.slice().reverse().forEach((m) => {
