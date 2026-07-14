@@ -65,6 +65,17 @@
     return `${MONTHS_FR[nextIdx]} ${year}`;
   }
 
+  // Devine le mois précédent à partir d'un libellé "Mai 2026"
+  function prevMonthLabel(label) {
+    const parts = (label || "").trim().split(" ");
+    const idx = MONTHS_FR.indexOf(parts[0]);
+    let year = parseInt(parts[1], 10);
+    if (idx === -1 || isNaN(year)) return "Mois précédent";
+    const prevIdx = idx === 0 ? 11 : idx - 1;
+    if (prevIdx === 11) year -= 1;
+    return `${MONTHS_FR[prevIdx]} ${year}`;
+  }
+
   /* ---------- persistance ---------- */
 
   function save() {
@@ -340,7 +351,7 @@
 
   function goToNextMonth() {
     const last = state.months[state.months.length - 1];
-    const carry = available(last); // le disponible restant devient le solde initial
+    const carry = available(last);
     const m = {
       id: uid(),
       label: nextMonthLabel(last.label),
@@ -353,6 +364,42 @@
     state.currentMonthId = m.id;
     notify();
     return m;
+  }
+
+  function goToPreviousMonth() {
+    const first = state.months[0];
+    const m = {
+      id: uid(),
+      label: prevMonthLabel(first.label),
+      // Solde de départ = même que l'actuel premier mois pour l'instant.
+      // Quand l'utilisateur ajoutera des transactions, rechain() recalculera.
+      initialBalance: first.initialBalance,
+      incomes: [],
+      expenses: [],
+      transactions: [],
+    };
+    state.months.unshift(m);
+    state.currentMonthId = m.id;
+    rechain();
+    notify();
+    return m;
+  }
+
+  function exportData() {
+    return JSON.stringify(state);
+  }
+
+  function importData(json) {
+    try {
+      const parsed = JSON.parse(json);
+      if (!parsed || !parsed.months) throw new Error("Format invalide");
+      state = parsed;
+      rechain();
+      notify();
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   function renameMonth(monthId, label) {
@@ -450,10 +497,15 @@
     monthById,
     setCurrentMonth,
     goToNextMonth,
+    goToPreviousMonth,
     renameMonth,
     setInitialBalance,
     deleteMonth,
     nextMonthLabel,
+    prevMonthLabel,
+    // sauvegarde
+    exportData,
+    importData,
     // calculs
     computed,
     available,

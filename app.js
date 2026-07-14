@@ -154,6 +154,35 @@
     return row;
   }
 
+  /* ---------- Résumé par catégorie ---------- */
+  function renderCatSummary(m, view) {
+    const totals = {};
+    m.transactions.filter((t) => t.type === "expense").forEach((t) => {
+      totals[t.category] = (totals[t.category] || 0) + t.amount;
+    });
+    const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    if (!entries.length) return;
+    const totalExp = entries.reduce((s, [, v]) => s + v, 0);
+    const sec = el("div", "section");
+    sec.appendChild(sectionHead("Répartition des dépenses", null));
+    const grid = el("div", "cat-grid");
+    entries.forEach(([cat, amt]) => {
+      const pct = Math.round((amt / totalExp) * 100);
+      const card = el("div", "cat-card");
+      card.innerHTML = `
+        <div class="cat-top">
+          <span class="cat-emoji">${emojiFor(cat, "💸")}</span>
+          <span class="cat-name">${esc(cat)}</span>
+          <span class="cat-pct">${pct}%</span>
+        </div>
+        <div class="cat-amt num">${F.money(amt)}</div>
+        <div class="cat-bar"><div class="cat-bar-fill" style="width:${pct}%"></div></div>`;
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    view.appendChild(sec);
+  }
+
   /* ---------- Historique ---------- */
   function renderHistory(m) {
     const view = $("#view-history");
@@ -162,6 +191,7 @@
     head.style.marginTop = "4px";
     head.innerHTML = `<h2 class="section-title">Évolution — ${esc(m.label)}</h2>`;
     view.appendChild(head);
+    renderCatSummary(m, view);
 
     const events = S.timeline(m.id);
     if (events.length <= 1 && m.transactions.length === 0) {
@@ -200,6 +230,19 @@
     const view = $("#view-months");
     view.innerHTML = "";
     const st = S.getState();
+
+    const prev = el("button", "btn-ghost");
+    prev.innerHTML = `<span class="plus">←</span> Créer un mois précédent`;
+    prev.style.marginBottom = "10px";
+    prev.addEventListener("click", () => {
+      const first = st.months[0];
+      const label = S.prevMonthLabel(first.label);
+      if (confirm(`Créer « ${label} » avant ${first.label} ?\n\nLe solde de départ de ${label} sera réglé à ${F.money(first.initialBalance)} — tu pourras l'ajuster dans Réglages une fois dessus.`)) {
+        S.goToPreviousMonth();
+        switchView("home");
+      }
+    });
+    view.appendChild(prev);
 
     const next = el("button", "btn-primary");
     next.innerHTML = `<span class="plus">→</span> Passer au mois suivant`;
@@ -329,6 +372,50 @@
         .catch(() => alert("Erreur : impossible de charger import-state.json"));
     });
     dataSec.appendChild(importBtn);
+
+    const exportBtn = el("button", "btn-ghost");
+    exportBtn.textContent = "📤 Exporter / sauvegarder mes données";
+    exportBtn.style.marginBottom = "10px";
+    exportBtn.addEventListener("click", () => {
+      const json = S.exportData();
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const d = new Date();
+      const stamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      a.href = url;
+      a.download = `budget-backup-${stamp}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    dataSec.appendChild(exportBtn);
+
+    const restoreBtn = el("button", "btn-ghost");
+    restoreBtn.textContent = "📥 Restaurer depuis une sauvegarde";
+    restoreBtn.style.marginBottom = "10px";
+    restoreBtn.addEventListener("click", () => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json,application/json";
+      input.addEventListener("change", () => {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          if (!confirm("Restaurer cette sauvegarde ? Les données actuelles seront remplacées.")) return;
+          const ok = S.importData(ev.target.result);
+          if (ok) {
+            alert("Restauration réussie !");
+            switchView("home");
+          } else {
+            alert("Erreur : fichier invalide ou corrompu.");
+          }
+        };
+        reader.readAsText(file);
+      });
+      input.click();
+    });
+    dataSec.appendChild(restoreBtn);
 
     const reset = el("button", "btn-danger-ghost");
     reset.textContent = "Tout réinitialiser";
