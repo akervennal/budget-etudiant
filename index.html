@@ -39,6 +39,14 @@
     <div class="modal" id="modalRoot"></div>
   </div>
 
+  <script>
+    window.addEventListener("error", function(e) {
+      var d = document.createElement("div");
+      d.style = "position:fixed;top:60px;left:0;right:0;background:#c00;color:#fff;padding:12px;z-index:9999;font-size:13px;word-break:break-all";
+      d.textContent = "ERREUR: " + e.message + " (" + (e.filename||"").split("/").pop() + ":" + e.lineno + ")";
+      document.body.appendChild(d);
+    });
+  </script>
   <script src="format.js"></script>
   <script src="store.js"></script>
   <script src="app.js"></script>
