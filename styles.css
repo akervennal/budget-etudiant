@@ -410,6 +410,17 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
 
+/* ── Carte total depuis le début ── */
+.total-card { margin-bottom: 6px; }
+.total-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-top: 10px;
+}
+.total-grid .ms { font-size: 10px; margin-bottom: 2px; }
+.total-grid .mv { font-size: 14px; }
+
 /* ── Bandeau mois consulté ── */
 .month-banner {
   display: flex;

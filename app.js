@@ -225,7 +225,6 @@
     head.style.marginTop = "4px";
     head.innerHTML = `<h2 class="section-title">Évolution — ${esc(m.label)}</h2>`;
     view.appendChild(head);
-    renderCatSummary(m, view);
 
     const events = S.timeline(m.id);
     if (events.length <= 1 && m.transactions.length === 0) {
@@ -289,6 +288,43 @@
       }
     });
     view.appendChild(next);
+
+    // Carte "Depuis le début"
+    const lastM = st.months[st.months.length - 1];
+    const allTx = st.months.flatMap((m) => m.transactions);
+    const totalInc = allTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+    const totalExp = allTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    const curBal = S.available(lastM);
+    const period = st.months.length === 1
+      ? st.months[0].label
+      : `${st.months[0].label} → ${lastM.label}`;
+    const totalCard = el("div", "month-card total-card");
+    totalCard.style.cursor = "pointer";
+    totalCard.innerHTML = `
+      <div style="width:100%">
+        <p class="ml">Depuis le début <span class="ms" style="margin-left:6px">${esc(period)}</span></p>
+        <div class="total-grid">
+          <div><p class="ms">Solde actuel</p><p class="mv num ${curBal < 0 ? "neg" : ""}">${F.money(curBal)}</p></div>
+          <div><p class="ms">Total revenus</p><p class="mv num income">${F.money(totalInc)}</p></div>
+          <div><p class="ms">Total dépenses</p><p class="mv num expense">${F.money(totalExp)}</p></div>
+        </div>
+      </div>`;
+    totalCard.addEventListener("click", () => {
+      const sorted = allTx.slice().sort((a, b) => b.date.localeCompare(a.date));
+      const body = el("div");
+      if (sorted.length) {
+        const list2 = el("div", "list");
+        sorted.forEach((t) => {
+          const srcMonth = st.months.find((m) => m.transactions.some((x) => x.id === t.id));
+          list2.appendChild(txRow(srcMonth, t));
+        });
+        body.appendChild(list2);
+      } else {
+        body.appendChild(emptyState("💸", "Aucune opération pour l'instant."));
+      }
+      openModal(`Toutes les opérations — ${esc(period)}`, body);
+    });
+    view.appendChild(totalCard);
 
     const sec = el("div", "section");
     sec.appendChild(sectionHead("Tes mois", null));
