@@ -169,6 +169,7 @@
     entries.forEach(([cat, amt]) => {
       const pct = Math.round((amt / totalExp) * 100);
       const card = el("div", "cat-card");
+      card.style.cursor = "pointer";
       card.innerHTML = `
         <div class="cat-top">
           <span class="cat-emoji">${emojiFor(cat, "💸")}</span>
@@ -177,6 +178,15 @@
         </div>
         <div class="cat-amt num">${F.money(amt)}</div>
         <div class="cat-bar"><div class="cat-bar-fill" style="width:${pct}%"></div></div>`;
+      card.addEventListener("click", () => {
+        const txs = m.transactions.filter((t) => t.type === "expense" && t.category === cat)
+          .slice().sort((a, b) => b.date.localeCompare(a.date));
+        const body = el("div");
+        const list = el("div", "list");
+        txs.forEach((t) => list.appendChild(txRow(m, t)));
+        body.appendChild(list);
+        openModal(`${emojiFor(cat, "💸")} ${cat}`, body);
+      });
       grid.appendChild(card);
     });
     sec.appendChild(grid);
