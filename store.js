@@ -197,6 +197,113 @@
     listeners.forEach((fn) => fn(state));
   }
 
+  /* ---------- sauvegarde GitHub (optionnelle, 100% manuelle) ----------
+   * Miroir hors-appareil : pousse le JSON complet vers un fichier dans un
+   * repo GitHub privé dédié, uniquement quand l'utilisateur clique sur
+   * "Sauvegarder maintenant". Rien ne se déclenche tout seul, et rien de
+   * tout ça ne s'active sans qu'un token soit renseigné.
+   * L'historique git du repo sert de facto d'historique de sauvegardes.
+   */
+
+  const GH_OWNER = "akervennal";
+  const GH_REPO = "budget-etudiant-backup";
+  const GH_PATH = "backup.json";
+  const GH_TOKEN_KEY = "budget-etudiant.gh-token";
+  const GH_API = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
+
+  let ghStatus = { syncing: false, lastSync: null, lastError: null };
+  let ghStatusCb = null;
+  let ghInFlight = false;
+
+  function ghSetStatus(patch) {
+    Object.assign(ghStatus, patch);
+    if (ghStatusCb) ghStatusCb({ ...ghStatus });
+  }
+
+  function getGhToken() {
+    return localStorage.getItem(GH_TOKEN_KEY) || "";
+  }
+
+  function setGhToken(token) {
+    if (token) localStorage.setItem(GH_TOKEN_KEY, token);
+    else localStorage.removeItem(GH_TOKEN_KEY);
+  }
+
+  function getGhStatus() {
+    return { ...ghStatus };
+  }
+
+  function onGhStatus(fn) {
+    ghStatusCb = fn;
+  }
+
+  // UTF-8 <-> base64 : btoa/atob natifs ne gèrent que le latin1
+  function b64EncodeUtf8(str) {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p) => String.fromCharCode(parseInt(p, 16))));
+  }
+  function b64DecodeUtf8(str) {
+    return decodeURIComponent(
+      atob(str).split("").map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0")).join("")
+    );
+  }
+
+  async function ghFetchSha() {
+    const res = await fetch(GH_API, { headers: { Authorization: `Bearer ${getGhToken()}` } });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`Lecture GitHub échouée (${res.status})`);
+    const data = await res.json();
+    return data.sha;
+  }
+
+  async function ghPut(sha) {
+    const body = {
+      message: "Sauvegarde — " + new Date().toISOString(),
+      content: b64EncodeUtf8(JSON.stringify(state)),
+    };
+    if (sha) body.sha = sha;
+    return fetch(GH_API, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${getGhToken()}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }
+
+  // Déclenché uniquement par le bouton "Sauvegarder maintenant"
+  async function ghSyncNow() {
+    if (!getGhToken()) return;
+    if (ghInFlight) return; // évite les doubles-clics qui se chevauchent
+    ghInFlight = true;
+    ghSetStatus({ syncing: true });
+    try {
+      let sha = await ghFetchSha();
+      let res = await ghPut(sha);
+      if (res.status === 409) {
+        // Conflit (écrit ailleurs entre-temps) : on retente une fois avec le sha à jour
+        sha = await ghFetchSha();
+        res = await ghPut(sha);
+      }
+      if (!res.ok) throw new Error(`Écriture GitHub échouée (${res.status})`);
+      ghSetStatus({ syncing: false, lastSync: new Date().toISOString(), lastError: null });
+    } catch (e) {
+      ghSetStatus({ syncing: false, lastError: e.message || String(e) });
+    } finally {
+      ghInFlight = false;
+    }
+  }
+
+  async function ghRestoreLatest() {
+    if (!getGhToken()) return { ok: false, error: "Aucun token configuré" };
+    try {
+      const res = await fetch(GH_API, { headers: { Authorization: `Bearer ${getGhToken()}` } });
+      if (!res.ok) throw new Error(`Lecture GitHub échouée (${res.status})`);
+      const data = await res.json();
+      const json = b64DecodeUtf8((data.content || "").replace(/\n/g, ""));
+      return { ok: importData(json) };
+    } catch (e) {
+      return { ok: false, error: e.message || String(e) };
+    }
+  }
+
   /* ---------- calculs sur un mois ---------- */
 
   function doneIncome(m) {
@@ -573,6 +680,13 @@
     // sauvegarde
     exportData,
     importData,
+    // sauvegarde GitHub (manuelle)
+    getGhToken,
+    setGhToken,
+    getGhStatus,
+    onGhStatus,
+    ghSyncNow,
+    ghRestoreLatest,
     // calculs
     computed,
     available,

@@ -6,6 +6,7 @@
   const F = Budget.format;
   let currentView = "home";
   let viewAll = false; // true = vue globale toutes périodes
+  let ghEditToken = false; // true = affiche le champ token même s'il est déjà configuré
 
   /* ---------- petits utilitaires DOM ---------- */
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -53,6 +54,7 @@
   }
 
   function render() {
+    if (!S.getState()) return; // état pas encore prêt (récupération IndexedDB en cours)
     updateHeader();
     if (currentView === "months") { renderMonths(); return; }
     if (currentView === "settings") { renderSettings(); return; }
@@ -699,6 +701,17 @@
     openModal(m.label, body);
   }
 
+  function ghStatusText(s) {
+    if (s.syncing) return "Sauvegarde en cours…";
+    if (s.lastError) return "Échec : " + s.lastError;
+    if (s.lastSync) {
+      const d = new Date(s.lastSync);
+      const time = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+      return `Dernière sauvegarde réussie : ${F.fullDate(s.lastSync.slice(0, 10))} à ${time}`;
+    }
+    return "Aucune sauvegarde effectuée pour l'instant.";
+  }
+
   /* ---------- Réglages ---------- */
   function renderSettings() {
     const view = $("#view-settings");
@@ -760,25 +773,74 @@
     catSec.appendChild(catList);
     view.appendChild(catSec);
 
+    // Sauvegarde GitHub (optionnelle, 100% manuelle)
+    const ghSec = el("div", "section");
+    ghSec.appendChild(sectionHead("Sauvegarde GitHub", null));
+    const hasGhToken = !!S.getGhToken();
+
+    if (!hasGhToken || ghEditToken) {
+      const ghField = el("div", "field");
+      ghField.innerHTML = `
+        <label>Token GitHub</label>
+        <input id="gh-token" type="password" placeholder="Colle ton token ici" value="${esc(S.getGhToken())}">`;
+      ghSec.appendChild(ghField);
+      const ghHelp = el("p", "empty");
+      ghHelp.style.cssText = "padding:2px 2px 10px;text-align:left;font-size:12.5px";
+      ghHelp.innerHTML = `Nécessaire une seule fois. Crée-le sur <a class="settings-link" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> → limite-le au repo <strong>budget-etudiant-backup</strong>, permission "Contents: Read and write".`;
+      ghSec.appendChild(ghHelp);
+      const ghSaveBtn = el("button", "btn-ghost");
+      ghSaveBtn.textContent = "Enregistrer le token";
+      ghSaveBtn.style.marginBottom = "10px";
+      ghSaveBtn.addEventListener("click", () => {
+        S.setGhToken($("#gh-token", ghSec).value.trim());
+        ghEditToken = false;
+        renderSettings();
+      });
+      ghSec.appendChild(ghSaveBtn);
+    } else {
+      const ghTokenRow = el("div", "row");
+      ghTokenRow.innerHTML = `<div class="body"><p class="t">Token GitHub configuré ✓</p></div>`;
+      const changeBtn = el("button", "section-action", "Changer");
+      changeBtn.addEventListener("click", () => { ghEditToken = true; renderSettings(); });
+      ghTokenRow.appendChild(changeBtn);
+      ghTokenRow.style.marginBottom = "10px";
+      ghSec.appendChild(ghTokenRow);
+    }
+
+    const ghBackupBtn = el("button", "btn-ghost");
+    ghBackupBtn.textContent = "☁️ Sauvegarder maintenant sur GitHub";
+    ghBackupBtn.style.marginBottom = "10px";
+    ghBackupBtn.addEventListener("click", async () => {
+      if (!S.getGhToken()) { alert("Colle et enregistre d'abord ton token GitHub ci-dessus."); return; }
+      ghBackupBtn.disabled = true;
+      ghBackupBtn.textContent = "☁️ Sauvegarde en cours…";
+      await S.ghSyncNow();
+      renderSettings();
+    });
+    ghSec.appendChild(ghBackupBtn);
+
+    const ghRestoreBtn = el("button", "btn-ghost");
+    ghRestoreBtn.textContent = "📥 Restaurer depuis GitHub";
+    ghRestoreBtn.style.marginBottom = "10px";
+    ghRestoreBtn.addEventListener("click", async () => {
+      if (!S.getGhToken()) { alert("Colle et enregistre d'abord ton token GitHub ci-dessus."); return; }
+      if (!confirm("Restaurer la dernière sauvegarde GitHub ? Les données actuelles seront remplacées.")) return;
+      ghRestoreBtn.disabled = true;
+      const res = await S.ghRestoreLatest();
+      ghRestoreBtn.disabled = false;
+      if (res.ok) { alert("Restauration réussie !"); switchView("home"); }
+      else alert("Erreur : " + (res.error || "impossible de restaurer"));
+    });
+    ghSec.appendChild(ghRestoreBtn);
+
+    const ghStatusP = el("p", "empty", esc(ghStatusText(S.getGhStatus())));
+    ghStatusP.style.cssText = "padding:0 2px 4px;text-align:left;font-size:12.5px";
+    ghSec.appendChild(ghStatusP);
+    view.appendChild(ghSec);
+
     // Données
     const dataSec = el("div", "section");
     dataSec.appendChild(sectionHead("Données", null));
-    const importBtn = el("button", "btn-ghost");
-    importBtn.textContent = "⬇ Importer mai & juin (BNP export)";
-    importBtn.style.marginBottom = "10px";
-    importBtn.addEventListener("click", () => {
-      if (!confirm("Importer mai et juin depuis l'export BNP ? Les données actuelles seront remplacées.")) return;
-      fetch("import-state.json")
-        .then((r) => r.json())
-        .then((state) => {
-          localStorage.setItem("budget-etudiant.v1", JSON.stringify(state));
-          alert("Import réussi ! L'app va se recharger.");
-          location.reload();
-        })
-        .catch(() => alert("Erreur : impossible de charger import-state.json"));
-    });
-    dataSec.appendChild(importBtn);
-
     const exportBtn = el("button", "btn-ghost");
     exportBtn.textContent = "📤 Exporter / sauvegarder mes données";
     exportBtn.style.marginBottom = "10px";
