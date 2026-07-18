@@ -33,19 +33,12 @@
   };
 
   const MONTHS_FR_APP = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
-  const MONTHS_SHORT_APP = ["Janv.","Févr.","Mars","Avr.","Mai","Juin","Juil.","Août","Sept.","Oct.","Nov.","Déc."];
   function realMonthLabel() {
     const now = new Date();
     return `${MONTHS_FR_APP[now.getMonth()]} ${now.getFullYear()}`;
   }
-  function shortMonthLabel(label) {
-    const word = (label || "").trim().split(" ")[0];
-    const idx = MONTHS_FR_APP.indexOf(word);
-    return idx === -1 ? word.slice(0, 4) : MONTHS_SHORT_APP[idx];
-  }
 
-  // Statut budgétaire d'un mois (couleur carte héro + graphe d'évolution)
-  const STATE_COLOR = { ok: "var(--ok)", tight: "var(--tight)", low: "var(--low)" };
+  // Statut budgétaire d'un mois (couleur carte héro)
   function heroState(c) {
     if (c.available < 0) return "low";
     if (c.available < c.totalExpense * 0.15 || c.available < 50) return "tight";
@@ -148,6 +141,10 @@
       sec.appendChild(list);
       view.appendChild(sec);
     }
+
+    // Évolution jour par jour du mois consulté
+    const dailySec = dailyChartSection(monthDailySeries(m));
+    if (dailySec) view.appendChild(dailySec);
 
     // Résumé par catégorie
     renderCatSummary(m, view);
@@ -307,6 +304,10 @@
       <div class="stat"><p class="k">Total dépenses</p><p class="v num">${F.money(totalExp)}</p></div>`;
     view.appendChild(stats);
 
+    // Évolution jour par jour, toutes périodes enchaînées
+    const dailySec = dailyChartSection(allDailySeries());
+    if (dailySec) view.appendChild(dailySec);
+
     renderCatSummary({ transactions: allTx }, view);
   }
 
@@ -361,85 +362,223 @@
     view.appendChild(tl);
   }
 
-  /* ---------- Graphe d'évolution (disponible par mois) ---------- */
-  function renderTrend(view) {
-    const st = S.getState();
-    const months = st.months; // ordre chronologique
-    if (months.length < 2) return;
+  /* ---------- Graphe d'évolution (solde jour par jour) ---------- */
 
-    const pts = months.map((m) => {
-      const c = S.computed(m);
-      return { id: m.id, label: m.label, value: c.available, state: heroState(c) };
+  // Nombre de jours dans un mois "Juillet 2026" (null si libellé non standard)
+  function daysInMonthFor(label) {
+    const parts = (label || "").trim().split(" ");
+    const idx = MONTHS_FR_APP.indexOf(parts[0]);
+    const year = parseInt(parts[1], 10);
+    if (idx === -1 || isNaN(year)) return null;
+    return new Date(year, idx + 1, 0).getDate();
+  }
+
+  // Jusqu'à quel jour du mois on a de l'information : tout le mois s'il est
+  // passé, jusqu'à aujourd'hui s'il est en cours, rien s'il est futur.
+  function monthCutoffDay(m) {
+    const total = daysInMonthFor(m.label);
+    if (total == null) return null;
+    const parts = m.label.trim().split(" ");
+    const idx = MONTHS_FR_APP.indexOf(parts[0]);
+    const year = parseInt(parts[1], 10);
+    const now = new Date();
+    const curY = now.getFullYear(), curM = now.getMonth(), curD = now.getDate();
+    if (year < curY || (year === curY && idx < curM)) return total;
+    if (year === curY && idx === curM) return curD;
+    return 0;
+  }
+
+  // Série {x: jour du mois, value: solde} un point par jour connu.
+  // Chaque mouvement "fait" compte dès aujourd'hui même si daté plus tard
+  // (le store les compte déjà dans le solde, peu importe la date) — le
+  // dernier point colle donc toujours au "Solde du compte" affiché.
+  function monthDailySeries(m) {
+    const cutoff = monthCutoffDay(m);
+    if (cutoff == null || cutoff < 1) return [];
+    const parts = m.label.trim().split(" ");
+    const monthIdx = MONTHS_FR_APP.indexOf(parts[0]);
+    const year = parseInt(parts[1], 10);
+    const iso = (d) => `${year}-${String(monthIdx + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
+    // Jour 0 = veille du 1er (dernier jour du mois précédent), pour un
+    // libellé d'axe cohérent avec les autres points de la série.
+    const prevMonthIdx = monthIdx === 0 ? 11 : monthIdx - 1;
+    const prevYear = monthIdx === 0 ? year - 1 : year;
+    const prevLastDay = new Date(prevYear, prevMonthIdx + 1, 0).getDate();
+    const day0Iso = `${prevYear}-${String(prevMonthIdx + 1).padStart(2, "0")}-${String(prevLastDay).padStart(2, "0")}`;
+
+    const clamp = (d) => Math.min(Math.max(d, 1), cutoff);
+    const events = [];
+    m.incomes.filter((i) => i.done).forEach((i) => events.push({ day: clamp(i.day || 1), delta: i.amount }));
+    m.expenses.filter((e) => e.done).forEach((e) => events.push({ day: clamp(e.day || 1), delta: -e.amount }));
+    m.transactions.forEach((t) => {
+      const d = parseInt((t.date || "").slice(8, 10), 10) || 1;
+      events.push({ day: clamp(d), delta: t.type === "income" ? t.amount : -t.amount });
     });
+    events.sort((a, b) => a.day - b.day);
 
-    const PAD_L = 20, PAD_R = 20, PAD_T = 26, PAD_B = 26, STEP = 56;
-    const innerW = (pts.length - 1) * STEP;
-    const W = innerW + PAD_L + PAD_R;
-    const H = 150;
-    const plotH = H - PAD_T - PAD_B;
+    let running = m.initialBalance;
+    let ei = 0;
+    const series = [{ x: 0, value: running, date: day0Iso }];
+    for (let d = 1; d <= cutoff; d++) {
+      while (ei < events.length && events[ei].day <= d) { running += events[ei].delta; ei++; }
+      series.push({ x: d, value: running, date: iso(d) });
+    }
+    return series;
+  }
 
-    const values = pts.map((p) => p.value).concat([0]);
-    let min = Math.min(...values);
-    let max = Math.max(...values);
-    const range = max - min;
-    const pad = (range || 100) * 0.18;
-    min -= pad;
-    max += pad;
+  // Série continue sur toutes les périodes (jour par jour, mois enchaînés)
+  function allDailySeries() {
+    const st = S.getState();
+    const points = [];
+    let xOffset = 0;
+    for (const m of st.months) {
+      const cutoff = monthCutoffDay(m);
+      if (cutoff === 0) break; // mois futur : la courbe s'arrête ici
+      if (cutoff != null) {
+        monthDailySeries(m).forEach((p) => points.push({ x: xOffset + p.x, value: p.value, date: p.date }));
+      }
+      xOffset += daysInMonthFor(m.label) || 30;
+    }
+    return points;
+  }
 
-    const xFor = (i) => PAD_L + i * STEP;
-    const yFor = (v) => PAD_T + plotH - ((v - min) / (max - min)) * plotH;
-    const zeroY = yFor(0);
+  // "Nombres ronds" pour des ticks d'axe lisibles (algorithme de Heckbert)
+  function niceNum(range, round) {
+    if (range <= 0) return 1;
+    const exponent = Math.floor(Math.log10(range));
+    const fraction = range / Math.pow(10, exponent);
+    let niceFraction;
+    if (round) {
+      if (fraction < 1.5) niceFraction = 1;
+      else if (fraction < 3) niceFraction = 2;
+      else if (fraction < 7) niceFraction = 5;
+      else niceFraction = 10;
+    } else {
+      if (fraction <= 1) niceFraction = 1;
+      else if (fraction <= 2) niceFraction = 2;
+      else if (fraction <= 5) niceFraction = 5;
+      else niceFraction = 10;
+    }
+    return niceFraction * Math.pow(10, exponent);
+  }
 
-    const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"} ${xFor(i).toFixed(1)} ${yFor(p.value).toFixed(1)}`).join(" ");
+  // Ticks d'axe adaptés à l'amplitude réelle de [min, max]
+  function niceTicks(min, max, count) {
+    if (min === max) { min -= 1; max += 1; }
+    const step = niceNum(niceNum(max - min, false) / Math.max(count - 1, 1), true);
+    const niceMin = Math.floor(min / step) * step;
+    const niceMax = Math.ceil(max / step) * step;
+    const ticks = [];
+    for (let v = niceMin; v <= niceMax + step / 2; v += step) ticks.push(Math.round(v * 100) / 100);
+    return ticks;
+  }
 
-    const dots = pts.map((p, i) => {
-      const x = xFor(i), y = yFor(p.value);
-      const isLast = i === pts.length - 1;
-      const r = isLast ? 5 : 4;
-      const labelAbove = y - 12 >= PAD_T;
-      const labelY = labelAbove ? y - 11 : y + 18;
-      const valueLabel = isLast
-        ? `<text x="${(x - 6).toFixed(1)}" y="${labelY.toFixed(1)}" class="trend-val" text-anchor="end">${esc(F.money(p.value))}</text>`
-        : "";
-      return `
-        <g class="trend-pt" data-id="${p.id}">
-          <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r + 7}" fill="transparent" />
-          <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${STATE_COLOR[p.state]}" stroke="var(--surface)" stroke-width="2" />
-          ${valueLabel}
-          <title>${esc(p.label)} — ${esc(F.money(p.value))}</title>
-        </g>`;
-    }).join("");
+  function nearestPoint(points, xv) {
+    let best = points[0], bestDist = Math.abs(points[0].x - xv);
+    for (let i = 1; i < points.length; i++) {
+      const d = Math.abs(points[i].x - xv);
+      if (d < bestDist) { best = points[i]; bestDist = d; }
+    }
+    return best;
+  }
 
-    const labels = pts.map((p, i) => {
-      return `<text x="${xFor(i).toFixed(1)}" y="${H - 8}" class="trend-x" text-anchor="middle">${esc(shortMonthLabel(p.label))}</text>`;
+  function axisMoney(v) {
+    return Math.round(v).toLocaleString("fr-FR") + " €";
+  }
+
+  // Courbe lissée (Catmull-Rom → Bézier) passant par les points pixel donnés
+  function smoothPath(pix) {
+    if (pix.length < 2) return "";
+    let d = `M ${pix[0][0].toFixed(1)} ${pix[0][1].toFixed(1)}`;
+    for (let i = 0; i < pix.length - 1; i++) {
+      const p0 = pix[i - 1] || pix[i];
+      const p1 = pix[i];
+      const p2 = pix[i + 1];
+      const p3 = pix[i + 2] || p2;
+      const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+      const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+      const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+    }
+    return d;
+  }
+
+  // Construit la section "Évolution" : ligne lissée, verte au-dessus de 0,
+  // rouge en dessous, avec deux axes adaptés à l'amplitude réelle des
+  // données (montant en ordonnée, jours en abscisse) — sans points ni légende.
+  function dailyChartSection(points) {
+    if (points.length < 2) return null;
+    const W = 300, H = 120;
+    const xs = points.map((p) => p.x);
+    const minX = xs[0], maxX = xs[xs.length - 1];
+    const spanX = maxX - minX || 1;
+
+    // Domaine des valeurs : basé sur les données réelles (+ le zéro, toujours visible)
+    const rawValues = points.map((p) => p.value).concat([0]);
+    const dataMinV = Math.min(...rawValues);
+    const dataMaxV = Math.max(...rawValues);
+    const rangeV = dataMaxV - dataMinV;
+    const padV = (rangeV || 100) * 0.15;
+    const minV = dataMinV - padV;
+    const maxV = dataMaxV + padV;
+
+    const xFor = (x) => ((x - minX) / spanX) * W;
+    const yFor = (v) => H - ((v - minV) / (maxV - minV)) * H;
+    const zeroY = Math.max(0, Math.min(H, yFor(0)));
+
+    const path = smoothPath(points.map((p) => [xFor(p.x), yFor(p.value)]));
+
+    // Ticks adaptatifs : amplitude réelle des montants pour l'ordonnée,
+    // étendue de jours affichée pour l'abscisse.
+    const yTicks = niceTicks(dataMinV, dataMaxV, 4).filter((v) => v >= minV && v <= maxV);
+    const xTicks = niceTicks(minX, maxX, 5).filter((v) => v >= minX && v <= maxX);
+
+    const gridLines = yTicks.map((v) => {
+      const y = yFor(v).toFixed(1);
+      return `<line x1="0" y1="${y}" x2="${W}" y2="${y}" class="daily-grid" />`;
     }).join("");
 
     const svg = `
-      <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" preserveAspectRatio="xMinYMid meet">
-        <line x1="${PAD_L}" y1="${zeroY.toFixed(1)}" x2="${W - PAD_R}" y2="${zeroY.toFixed(1)}" class="trend-zero" />
-        <path d="${linePath}" class="trend-line" fill="none" />
-        ${dots}
-        ${labels}
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="daily-chart-svg">
+        ${gridLines}
+        <defs>
+          <clipPath id="dcClipPos"><rect x="0" y="0" width="${W}" height="${zeroY.toFixed(1)}" /></clipPath>
+          <clipPath id="dcClipNeg"><rect x="0" y="${zeroY.toFixed(1)}" width="${W}" height="${(H - zeroY).toFixed(1)}" /></clipPath>
+        </defs>
+        <path d="${path}" class="daily-line pos" clip-path="url(#dcClipPos)" />
+        <path d="${path}" class="daily-line neg" clip-path="url(#dcClipNeg)" />
       </svg>`;
 
-    const sec = el("div", "section");
-    sec.appendChild(sectionHead("Évolution du disponible", null));
-    const card = el("div", "trend-card");
-    const wrap = el("div", "trend-wrap");
-    wrap.innerHTML = svg;
-    wrap.querySelectorAll(".trend-pt").forEach((g) => {
-      g.style.cursor = "pointer";
-      g.addEventListener("click", () => {
-        viewAll = false;
-        S.setCurrentMonth(g.dataset.id);
-        switchView("home");
-      });
+    // Les libellés d'axe sont des <span> HTML positionnés en % par-dessus le
+    // SVG (et non du texte SVG) : le SVG est étiré en non-uniforme
+    // (preserveAspectRatio="none") pour remplir la carte, ce qui déformerait
+    // du texte dessiné dedans. Le positionnement en % reste correct car il
+    // suit la même fraction 0..1 que le tracé, quelle que soit la déformation.
+    const box = el("div", "daily-chart-box");
+    box.innerHTML = svg;
+
+    yTicks.forEach((v) => {
+      const lbl = el("span", "daily-y-tick", esc(axisMoney(v)));
+      lbl.style.top = ((yFor(v) / H) * 100) + "%";
+      box.appendChild(lbl);
     });
-    card.appendChild(wrap);
-    const legend = el("p", "trend-legend", "🟢 À l'aise · 🟠 Ça se resserre · 🔴 À découvert");
-    card.appendChild(legend);
+
+    xTicks.forEach((xv) => {
+      const p = nearestPoint(points, xv);
+      const text = p && p.date ? F.dayMonth(p.date) : String(Math.round(xv));
+      const lbl = el("span", "daily-x-tick", esc(text));
+      lbl.style.left = ((xFor(xv) / W) * 100) + "%";
+      box.appendChild(lbl);
+    });
+
+    const sec = el("div", "section");
+    sec.appendChild(sectionHead("Évolution", null));
+    const card = el("div", "daily-chart-card");
+    card.appendChild(box);
     sec.appendChild(card);
-    view.appendChild(sec);
+    return sec;
   }
 
   /* ---------- Mois ---------- */
@@ -498,8 +637,6 @@
       render();
     });
     view.appendChild(totalCard);
-
-    renderTrend(view);
 
     const sec = el("div", "section");
     const list = el("div", "list");
