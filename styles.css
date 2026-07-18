@@ -367,7 +367,7 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
   font-size: 11px; font-weight: 600;
   transition: color 0.15s ease;
 }
-.tab .ti { font-size: 20px; line-height: 1; }
+.tab .ti { width: 22px; height: 22px; display: block; flex-shrink: 0; }
 .tab.active { color: var(--ink); }
 .tab.active .ti { transform: translateY(-1px); }
 
@@ -552,4 +552,29 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
   background: var(--ok);
   border-radius: 2px;
   transition: width 0.3s ease;
+}
+
+/* ── Graphe d'évolution ── */
+.trend-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 14px 0 12px;
+}
+.trend-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 4px;
+}
+.trend-wrap svg { display: block; }
+.trend-line { stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.trend-zero { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 3; }
+.trend-val { font-family: var(--font-display); font-size: 11px; font-weight: 700; fill: var(--ink); }
+.trend-x { font-size: 10px; font-weight: 600; fill: var(--faint); }
+.trend-legend {
+  margin: 10px 14px 0;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-align: center;
 }

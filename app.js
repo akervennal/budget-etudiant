@@ -33,9 +33,23 @@
   };
 
   const MONTHS_FR_APP = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+  const MONTHS_SHORT_APP = ["Janv.","Févr.","Mars","Avr.","Mai","Juin","Juil.","Août","Sept.","Oct.","Nov.","Déc."];
   function realMonthLabel() {
     const now = new Date();
     return `${MONTHS_FR_APP[now.getMonth()]} ${now.getFullYear()}`;
+  }
+  function shortMonthLabel(label) {
+    const word = (label || "").trim().split(" ")[0];
+    const idx = MONTHS_FR_APP.indexOf(word);
+    return idx === -1 ? word.slice(0, 4) : MONTHS_SHORT_APP[idx];
+  }
+
+  // Statut budgétaire d'un mois (couleur carte héro + graphe d'évolution)
+  const STATE_COLOR = { ok: "var(--ok)", tight: "var(--tight)", low: "var(--low)" };
+  function heroState(c) {
+    if (c.available < 0) return "low";
+    if (c.available < c.totalExpense * 0.15 || c.available < 50) return "tight";
+    return "ok";
   }
 
   /* ================= RENDU ================= */
@@ -66,9 +80,7 @@
     view.innerHTML = "";
 
     // état de la carte héro
-    let state = "ok";
-    if (c.available < 0) state = "low";
-    else if (c.available < c.totalExpense * 0.15 || c.available < 50) state = "tight";
+    const state = heroState(c);
 
     const hero = el("div", "hero " + state);
     hero.innerHTML = `
@@ -349,6 +361,87 @@
     view.appendChild(tl);
   }
 
+  /* ---------- Graphe d'évolution (disponible par mois) ---------- */
+  function renderTrend(view) {
+    const st = S.getState();
+    const months = st.months; // ordre chronologique
+    if (months.length < 2) return;
+
+    const pts = months.map((m) => {
+      const c = S.computed(m);
+      return { id: m.id, label: m.label, value: c.available, state: heroState(c) };
+    });
+
+    const PAD_L = 20, PAD_R = 20, PAD_T = 26, PAD_B = 26, STEP = 56;
+    const innerW = (pts.length - 1) * STEP;
+    const W = innerW + PAD_L + PAD_R;
+    const H = 150;
+    const plotH = H - PAD_T - PAD_B;
+
+    const values = pts.map((p) => p.value).concat([0]);
+    let min = Math.min(...values);
+    let max = Math.max(...values);
+    const range = max - min;
+    const pad = (range || 100) * 0.18;
+    min -= pad;
+    max += pad;
+
+    const xFor = (i) => PAD_L + i * STEP;
+    const yFor = (v) => PAD_T + plotH - ((v - min) / (max - min)) * plotH;
+    const zeroY = yFor(0);
+
+    const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"} ${xFor(i).toFixed(1)} ${yFor(p.value).toFixed(1)}`).join(" ");
+
+    const dots = pts.map((p, i) => {
+      const x = xFor(i), y = yFor(p.value);
+      const isLast = i === pts.length - 1;
+      const r = isLast ? 5 : 4;
+      const labelAbove = y - 12 >= PAD_T;
+      const labelY = labelAbove ? y - 11 : y + 18;
+      const valueLabel = isLast
+        ? `<text x="${(x - 6).toFixed(1)}" y="${labelY.toFixed(1)}" class="trend-val" text-anchor="end">${esc(F.money(p.value))}</text>`
+        : "";
+      return `
+        <g class="trend-pt" data-id="${p.id}">
+          <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r + 7}" fill="transparent" />
+          <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${STATE_COLOR[p.state]}" stroke="var(--surface)" stroke-width="2" />
+          ${valueLabel}
+          <title>${esc(p.label)} — ${esc(F.money(p.value))}</title>
+        </g>`;
+    }).join("");
+
+    const labels = pts.map((p, i) => {
+      return `<text x="${xFor(i).toFixed(1)}" y="${H - 8}" class="trend-x" text-anchor="middle">${esc(shortMonthLabel(p.label))}</text>`;
+    }).join("");
+
+    const svg = `
+      <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" preserveAspectRatio="xMinYMid meet">
+        <line x1="${PAD_L}" y1="${zeroY.toFixed(1)}" x2="${W - PAD_R}" y2="${zeroY.toFixed(1)}" class="trend-zero" />
+        <path d="${linePath}" class="trend-line" fill="none" />
+        ${dots}
+        ${labels}
+      </svg>`;
+
+    const sec = el("div", "section");
+    sec.appendChild(sectionHead("Évolution du disponible", null));
+    const card = el("div", "trend-card");
+    const wrap = el("div", "trend-wrap");
+    wrap.innerHTML = svg;
+    wrap.querySelectorAll(".trend-pt").forEach((g) => {
+      g.style.cursor = "pointer";
+      g.addEventListener("click", () => {
+        viewAll = false;
+        S.setCurrentMonth(g.dataset.id);
+        switchView("home");
+      });
+    });
+    card.appendChild(wrap);
+    const legend = el("p", "trend-legend", "🟢 À l'aise · 🟠 Ça se resserre · 🔴 À découvert");
+    card.appendChild(legend);
+    sec.appendChild(card);
+    view.appendChild(sec);
+  }
+
   /* ---------- Mois ---------- */
   function renderMonths() {
     const view = $("#view-months");
@@ -405,6 +498,8 @@
       render();
     });
     view.appendChild(totalCard);
+
+    renderTrend(view);
 
     const sec = el("div", "section");
     const list = el("div", "list");
