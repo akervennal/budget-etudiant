@@ -455,14 +455,6 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
 
 /* ── Carte total depuis le début ── */
 .total-card { margin-top: 14px; margin-bottom: 0; }
-.total-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 6px;
-  margin-top: 10px;
-}
-.total-grid .ms { font-size: 10px; margin-bottom: 2px; }
-.total-grid .mv { font-size: 14px; }
 
 /* ── Bandeau mois consulté ── */
 .month-banner {

@@ -646,26 +646,15 @@
     });
     view.appendChild(next);
 
-    // Carte "Depuis le début"
+    // Carte "Depuis le début" — juste un lien vers la vue globale, le détail
+    // (solde, revenus, dépenses) est déjà affiché une fois qu'on y est.
     const lastM = st.months[st.months.length - 1];
-    const allTx = st.months.flatMap((m) => m.transactions);
-    const totalInc = allTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    const totalExp = allTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-    const curBal = S.available(lastM);
     const period = st.months.length === 1
       ? st.months[0].label
       : `${st.months[0].label} → ${lastM.label}`;
     const totalCard = el("div", "month-card total-card" + (viewAll ? " current" : ""));
     totalCard.style.cursor = "pointer";
-    totalCard.innerHTML = `
-      <div style="width:100%">
-        <p class="ml">Depuis le début <span class="ms" style="margin-left:6px">${esc(period)}</span></p>
-        <div class="total-grid">
-          <div><p class="ms">Solde actuel</p><p class="mv num ${curBal < 0 ? "neg" : ""}">${F.money(curBal)}</p></div>
-          <div><p class="ms">Total revenus</p><p class="mv num income">${F.money(totalInc)}</p></div>
-          <div><p class="ms">Total dépenses</p><p class="mv num expense">${F.money(totalExp)}</p></div>
-        </div>
-      </div>`;
+    totalCard.innerHTML = `<p class="ml">Depuis le début <span class="ms" style="margin-left:6px">${esc(period)}</span></p>`;
     totalCard.addEventListener("click", () => {
       viewAll = true;
       render();
