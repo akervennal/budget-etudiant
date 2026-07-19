@@ -205,7 +205,7 @@
     const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
     const totalExp = entries.reduce((s, [, v]) => s + v, 0);
     const sec = el("div", "section");
-    sec.appendChild(sectionHead("Répartition des dépenses récurrentes", null));
+    sec.style.marginTop = "10px";
     const grid = el("div", "cat-grid");
     entries.forEach(([cat, amt]) => {
       const pct = Math.round((amt / totalExp) * 100);
@@ -281,7 +281,7 @@
     if (!entries.length) return;
     const totalExp = entries.reduce((s, [, v]) => s + v, 0);
     const sec = el("div", "section");
-    sec.appendChild(sectionHead("Répartition des dépenses", null));
+    sec.style.marginTop = "10px";
     const grid = el("div", "cat-grid");
     entries.forEach(([cat, amt]) => {
       const pct = Math.round((amt / totalExp) * 100);
@@ -658,7 +658,7 @@
     });
 
     const sec = el("div", "section");
-    sec.appendChild(sectionHead("Évolution", null));
+    sec.style.marginTop = "10px";
     const card = el("div", "daily-chart-card");
     card.appendChild(box);
     sec.appendChild(card);
@@ -1224,6 +1224,22 @@
     // PWA : enregistrement du service worker si servi via http(s)
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       navigator.serviceWorker.register("service-worker.js").catch(() => {});
+
+      // Une PWA relancée depuis l'écran d'accueil reprend souvent la session
+      // déjà en mémoire sans jamais retélécharger quoi que ce soit. On force
+      // une vérification à chaque retour au premier plan, et on recharge dès
+      // qu'une nouvelle version prend le contrôle.
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing) return;
+        refreshing = true;
+        location.reload();
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          navigator.serviceWorker.getRegistration().then((reg) => reg && reg.update());
+        }
+      });
     }
   }
 
