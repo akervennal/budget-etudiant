@@ -7,6 +7,7 @@
   let currentView = "home";
   let viewAll = false; // true = vue globale toutes périodes
   let ghEditToken = false; // true = affiche le champ token même s'il est déjà configuré
+  let settingsSubview = null; // null = liste racine, sinon "categories" | "recurring" | "backup"
 
   /* ---------- petits utilitaires DOM ---------- */
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -713,29 +714,73 @@
   }
 
   /* ---------- Réglages ---------- */
+
+  // Petite barre "‹ Réglages   Titre   [Action]" en haut d'un sous-écran
+  function subSettingsHead(title, actionLabel, onAction) {
+    const head = el("div", "settings-subhead");
+    const back = el("button", "settings-back", "‹ Réglages");
+    back.addEventListener("click", () => { settingsSubview = null; renderSettings(); });
+    head.appendChild(back);
+    head.appendChild(el("h2", "section-title", esc(title)));
+    if (actionLabel) {
+      const btn = el("button", "section-action", esc(actionLabel));
+      btn.addEventListener("click", onAction);
+      head.appendChild(btn);
+    }
+    return head;
+  }
+
+  // Ligne de navigation vers un sous-écran (façon "Réglages" iOS)
+  function settingsNavRow(title, onClick) {
+    const row = el("div", "row");
+    row.style.cursor = "pointer";
+    row.innerHTML = `<div class="body"><p class="t">${esc(title)}</p></div><span class="chevron">›</span>`;
+    row.addEventListener("click", onClick);
+    return row;
+  }
+
   function renderSettings() {
     const view = $("#view-settings");
     view.innerHTML = "";
-    const st = S.getState();
+    if (settingsSubview === "categories") return renderSettingsCategories(view);
+    if (settingsSubview === "recurring") return renderSettingsRecurring(view);
+    if (settingsSubview === "backup") return renderSettingsBackup(view);
+    if (settingsSubview === "balance") return renderSettingsBalance(view);
+    renderSettingsRoot(view);
+  }
 
-    // Solde de départ (premier mois)
-    const balSec = el("div", "section");
-    balSec.style.marginTop = "4px";
-    balSec.appendChild(sectionHead("Solde de départ", "Modifier", () => {
+  // Écran racine : uniquement des lignes de navigation, triées par fréquence
+  // d'usage — "Solde de départ" (touché une fois, à la mise en place) en dernier.
+  function renderSettingsRoot(view) {
+    const nav = el("div", "section");
+    nav.style.marginTop = "4px";
+    const list = el("div", "list");
+    list.appendChild(settingsNavRow("Catégories", () => { settingsSubview = "categories"; renderSettings(); }));
+    list.appendChild(settingsNavRow("Récurrents", () => { settingsSubview = "recurring"; renderSettings(); }));
+    list.appendChild(settingsNavRow("Sauvegarde & données", () => { settingsSubview = "backup"; renderSettings(); }));
+    list.appendChild(settingsNavRow("Solde de départ", () => { settingsSubview = "balance"; renderSettings(); }));
+    nav.appendChild(list);
+    view.appendChild(nav);
+  }
+
+  function renderSettingsBalance(view) {
+    const st = S.getState();
+    view.appendChild(subSettingsHead("Solde de départ", "Modifier", () => {
       const v = prompt("Solde de départ du tout premier mois (€) :", st.months[0].initialBalance);
-      if (v != null && v !== "") S.setInitialBalance(parseFloat(v.replace(",", ".")) || 0);
+      if (v != null && v !== "") { S.setInitialBalance(parseFloat(v.replace(",", ".")) || 0); renderSettings(); }
     }));
+    const help = el("p", "empty");
+    help.style.cssText = "padding:0 2px 14px;text-align:left;font-size:12.5px";
+    help.textContent = "Point de départ de tous les calculs — à ne régler qu'une seule fois, à la mise en place.";
+    view.appendChild(help);
     const balRow = el("div", "row");
     balRow.innerHTML = `<div class="body"><p class="t">${esc(st.months[0].label)}</p><p class="s">Point de départ de tous les calculs</p></div><div class="amt num">${F.money(st.months[0].initialBalance)}</div>`;
-    balSec.appendChild(balRow);
-    view.appendChild(balSec);
+    view.appendChild(balRow);
+  }
 
-    view.appendChild(recurringSection("Revenus récurrents", "income", st.recurringIncomes));
-    view.appendChild(recurringSection("Dépenses récurrentes", "expense", st.recurringExpenses));
-
-    // Catégories
-    const catSec = el("div", "section");
-    catSec.appendChild(sectionHead("Catégories", "Ajouter", () => {
+  function renderSettingsCategories(view) {
+    const st = S.getState();
+    view.appendChild(subSettingsHead("Catégories", "Ajouter", () => {
       const body = el("div");
       body.innerHTML = `
         <div class="field-row">
@@ -770,11 +815,22 @@
       });
       catList.appendChild(row);
     });
-    catSec.appendChild(catList);
-    view.appendChild(catSec);
+    view.appendChild(catList);
+  }
+
+  function renderSettingsRecurring(view) {
+    const st = S.getState();
+    view.appendChild(subSettingsHead("Récurrents", null));
+    view.appendChild(recurringSection("Revenus récurrents", "income", st.recurringIncomes));
+    view.appendChild(recurringSection("Dépenses récurrentes", "expense", st.recurringExpenses));
+  }
+
+  function renderSettingsBackup(view) {
+    view.appendChild(subSettingsHead("Sauvegarde & données", null));
 
     // Sauvegarde GitHub (optionnelle, 100% manuelle)
     const ghSec = el("div", "section");
+    ghSec.style.marginTop = "0";
     ghSec.appendChild(sectionHead("Sauvegarde GitHub", null));
     const hasGhToken = !!S.getGhToken();
 
@@ -838,9 +894,9 @@
     ghSec.appendChild(ghStatusP);
     view.appendChild(ghSec);
 
-    // Données
+    // Sauvegarde locale (fichier)
     const dataSec = el("div", "section");
-    dataSec.appendChild(sectionHead("Données", null));
+    dataSec.appendChild(sectionHead("Sauvegarde locale", null));
     const exportBtn = el("button", "btn-ghost");
     exportBtn.textContent = "📤 Exporter / sauvegarder mes données";
     exportBtn.style.marginBottom = "10px";
@@ -860,7 +916,6 @@
 
     const restoreBtn = el("button", "btn-ghost");
     restoreBtn.textContent = "📥 Restaurer depuis une sauvegarde";
-    restoreBtn.style.marginBottom = "10px";
     restoreBtn.addEventListener("click", () => {
       const input = document.createElement("input");
       input.type = "file";
@@ -884,7 +939,11 @@
       input.click();
     });
     dataSec.appendChild(restoreBtn);
+    view.appendChild(dataSec);
 
+    // Zone dangereuse
+    const dangerSec = el("div", "section");
+    dangerSec.appendChild(sectionHead("Zone dangereuse", null));
     const reset = el("button", "btn-danger-ghost");
     reset.textContent = "Tout réinitialiser";
     reset.addEventListener("click", () => {
@@ -893,12 +952,12 @@
         switchView("home");
       }
     });
-    dataSec.appendChild(reset);
+    dangerSec.appendChild(reset);
     const note = el("p", "empty");
     note.style.padding = "14px 4px 0";
     note.innerHTML = `<p style="margin:0">Tes données restent sur cet appareil (hors ligne). Aucune connexion bancaire.</p>`;
-    dataSec.appendChild(note);
-    view.appendChild(dataSec);
+    dangerSec.appendChild(note);
+    view.appendChild(dangerSec);
   }
 
   function recurringSection(title, kind, items) {
@@ -1096,6 +1155,7 @@
 
   /* ================= NAVIGATION ================= */
   function switchView(name) {
+    if (name !== "settings") settingsSubview = null; // repart de la racine au prochain passage
     currentView = name;
     document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
     $("#view-" + name).classList.add("active");

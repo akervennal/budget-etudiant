@@ -601,3 +601,22 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
 
 /* ── Lien dans les Réglages (ex : instructions token GitHub) ── */
 .settings-link { color: var(--ok); font-weight: 600; }
+
+/* ── Navigation Réglages (écran racine → sous-écrans) ── */
+.chevron { color: var(--faint); font-size: 20px; flex: none; }
+.settings-subhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 2px 14px;
+}
+.settings-subhead .section-title { flex: 1; margin: 0; }
+.settings-back {
+  background: none;
+  border: none;
+  color: var(--ok);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 4px 2px;
+  white-space: nowrap;
+}
