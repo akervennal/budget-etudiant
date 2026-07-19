@@ -354,7 +354,7 @@ main { padding: 16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--line);
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   z-index: 30;
   padding-bottom: env(safe-area-inset-bottom);
 }
