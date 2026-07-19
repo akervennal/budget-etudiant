@@ -177,7 +177,7 @@
         </div>
         <div class="amt ${kind === "income" ? "income" : "expense"} num">${sign}${F.money(item.amount).replace("€", "").trim()} €</div>`;
       $(".check", row).addEventListener("click", () => {
-        S.toggleRecurring(m.id, kind, item.id);
+        S.toggleRecurring(item._monthId || m.id, kind, item.id);
       });
     }
     return row;
@@ -199,6 +199,9 @@
   /* ---------- Résumé par catégorie ---------- */
   function renderCatSummary(m, view) {
     const totals = {};
+    (m.expenses || []).forEach((e) => {
+      totals[e.category] = (totals[e.category] || 0) + e.amount;
+    });
     m.transactions.filter((t) => t.type === "expense").forEach((t) => {
       totals[t.category] = (totals[t.category] || 0) + t.amount;
     });
@@ -221,10 +224,12 @@
         <div class="cat-amt num">${F.money(amt)}</div>
         <div class="cat-bar"><div class="cat-bar-fill" style="width:${pct}%"></div></div>`;
       card.addEventListener("click", () => {
+        const recurring = (m.expenses || []).filter((e) => e.category === cat);
         const txs = m.transactions.filter((t) => t.type === "expense" && t.category === cat)
           .slice().sort((a, b) => b.date.localeCompare(a.date));
         const body = el("div");
         const list = el("div", "list");
+        recurring.forEach((e) => list.appendChild(recurringRow(m, "expense", e)));
         txs.forEach((t) => list.appendChild(txRow(m, t)));
         body.appendChild(list);
         openModal(`${emojiFor(cat, "💸")} ${cat}`, body);
@@ -291,8 +296,12 @@
     const lastM = st.months[st.months.length - 1];
     const curBal = S.available(lastM);
     const allTx = st.months.flatMap((m) => m.transactions);
-    const totalInc = allTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    const totalExp = allTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    const allExpenses = st.months.flatMap((m) => m.expenses.map((e) => ({ ...e, _monthId: m.id })));
+    const allIncomes = st.months.flatMap((m) => m.incomes);
+    const totalInc = allIncomes.reduce((s, i) => s + i.amount, 0)
+      + allTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+    const totalExp = allExpenses.reduce((s, e) => s + e.amount, 0)
+      + allTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
 
     const hero = el("div", "hero " + (curBal < 0 ? "low" : "ok"));
     hero.innerHTML = `
@@ -311,7 +320,7 @@
     const dailySec = dailyChartSection(allDailySeries());
     if (dailySec) view.appendChild(dailySec);
 
-    renderCatSummary({ transactions: allTx }, view);
+    renderCatSummary({ transactions: allTx, expenses: allExpenses }, view);
   }
 
   function renderHistoryAll() {

@@ -599,10 +599,10 @@
     // Récurrents "faits" + transactions, triés par date
     const items = [];
     m.incomes.filter((i) => i.done).forEach((i) =>
-      items.push({ date: "0000-00-00", label: i.name, delta: i.amount, kind: "recurring" })
+      items.push({ date: null, label: i.name, delta: i.amount, kind: "recurring" })
     );
     m.expenses.filter((e) => e.done).forEach((e) =>
-      items.push({ date: "0000-00-00", label: e.name, delta: -e.amount, kind: "recurring" })
+      items.push({ date: null, label: e.name, delta: -e.amount, kind: "recurring" })
     );
     m.transactions.forEach((t) =>
       items.push({
@@ -614,7 +614,9 @@
         id: t.id,
       })
     );
-    items.sort((a, b) => a.date.localeCompare(b.date));
+    // Les récurrents (date=null) n'ont pas de date réelle : on les place
+    // avant toutes les transactions datées du mois.
+    items.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
 
     items.forEach((it) => {
       running += it.delta;
