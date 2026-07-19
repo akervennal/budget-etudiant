@@ -142,7 +142,6 @@
   function renderRecurring() {
     const view = $("#view-recurring");
     view.innerHTML = "";
-    const st = S.getState();
     const m = S.currentMonth();
 
     const head = el("div", "section-head");
@@ -150,28 +149,79 @@
     head.innerHTML = `<h2 class="section-title">Ce mois-ci — ${esc(m.label)}</h2>`;
     view.appendChild(head);
 
+    // Dépenses récurrentes : une seule ligne par récurrent (statut du mois +
+    // accès à l'édition du modèle au tap), plus de liste séparée en double.
+    const expSec = el("div", "section");
+    expSec.appendChild(sectionHead("Dépenses récurrentes", "Ajouter", () => openRecurringModal("expense")));
     if (m.expenses.length) {
-      const sec = el("div", "section");
-      sec.appendChild(sectionHead("Dépenses du mois", null));
       const list = el("div", "list");
-      m.expenses.forEach((e) => list.appendChild(recurringRow(m, "expense", e)));
-      sec.appendChild(list);
-      view.appendChild(sec);
+      m.expenses.forEach((e) => list.appendChild(recurringRowEditable(m, "expense", e)));
+      expSec.appendChild(list);
+    } else {
+      expSec.appendChild(emptyState("📄", "Aucune dépense récurrente. Ajoute loyer, internet…"));
     }
-    if (m.incomes.length) {
-      const sec = el("div", "section");
-      sec.appendChild(sectionHead("Revenus du mois", null));
-      const list = el("div", "list");
-      m.incomes.forEach((i) => list.appendChild(recurringRow(m, "income", i)));
-      sec.appendChild(list);
-      view.appendChild(sec);
-    }
-    if (!m.expenses.length && !m.incomes.length) {
-      view.appendChild(emptyState("🔁", "Aucun récurrent ce mois-ci. Ajoutes-en un ci-dessous."));
-    }
+    view.appendChild(expSec);
 
-    view.appendChild(recurringSection("Revenus récurrents", "income", st.recurringIncomes));
-    view.appendChild(recurringSection("Dépenses récurrentes", "expense", st.recurringExpenses));
+    const catSec = recurringCatSummary(m.expenses);
+    if (catSec) view.appendChild(catSec);
+
+    // Revenus récurrents : pareil, avec juste un total (pas besoin de
+    // répartition par catégorie côté revenus).
+    const incSec = el("div", "section");
+    incSec.appendChild(sectionHead("Revenus récurrents", "Ajouter", () => openRecurringModal("income")));
+    if (m.incomes.length) {
+      const totalInc = m.incomes.reduce((s, i) => s + i.amount, 0);
+      const totalP = el("p", "s", `Total : ${esc(F.money(totalInc))}`);
+      totalP.style.cssText = "margin:-4px 2px 10px;font-size:12.5px;color:var(--muted)";
+      incSec.appendChild(totalP);
+      const list = el("div", "list");
+      m.incomes.forEach((i) => list.appendChild(recurringRowEditable(m, "income", i)));
+      incSec.appendChild(list);
+    } else {
+      incSec.appendChild(emptyState("💰", "Aucun revenu récurrent. Ajoute ton salaire, une aide…"));
+    }
+    view.appendChild(incSec);
+  }
+
+  // Ligne d'un récurrent qui fait les deux choses à la fois : la case à
+  // cocher/l'indicateur pour le statut de ce mois (via recurringRow), et un
+  // tap sur le reste de la ligne pour éditer/supprimer le modèle.
+  function recurringRowEditable(m, kind, item) {
+    const row = recurringRow(m, kind, item);
+    row.style.cursor = "pointer";
+    row.addEventListener("click", (e) => {
+      if (item.day == null && e.target.closest(".check")) return; // déjà géré par recurringRow
+      openRecurringModal(kind, { id: item.templateId, name: item.name, amount: item.amount, day: item.day, category: item.category });
+    });
+    return row;
+  }
+
+  // Répartition par catégorie des dépenses récurrentes (même carte que
+  // "Répartition des dépenses" sur l'Accueil, appliquée aux montants récurrents).
+  function recurringCatSummary(expenses) {
+    if (!expenses.length) return null;
+    const totals = {};
+    expenses.forEach((e) => { totals[e.category] = (totals[e.category] || 0) + e.amount; });
+    const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    const totalExp = entries.reduce((s, [, v]) => s + v, 0);
+    const sec = el("div", "section");
+    sec.appendChild(sectionHead("Répartition des dépenses récurrentes", null));
+    const grid = el("div", "cat-grid");
+    entries.forEach(([cat, amt]) => {
+      const pct = Math.round((amt / totalExp) * 100);
+      const card = el("div", "cat-card");
+      card.innerHTML = `
+        <div class="cat-top">
+          <span class="cat-emoji">${emojiFor(cat, "💸")}</span>
+          <span class="cat-name">${esc(cat)}</span>
+          <span class="cat-pct">${pct}%</span>
+        </div>
+        <div class="cat-amt num">${F.money(amt)}</div>
+        <div class="cat-bar"><div class="cat-bar-fill" style="width:${pct}%"></div></div>`;
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    return sec;
   }
 
   function recurringRow(m, kind, item) {
@@ -969,27 +1019,6 @@
     note.innerHTML = `<p style="margin:0">Tes données restent sur cet appareil (hors ligne). Aucune connexion bancaire.</p>`;
     dangerSec.appendChild(note);
     view.appendChild(dangerSec);
-  }
-
-  function recurringSection(title, kind, items) {
-    const sec = el("div", "section");
-    sec.appendChild(sectionHead(title, "Ajouter", () => openRecurringModal(kind)));
-    if (items.length) {
-      const list = el("div", "list");
-      items.forEach((it) => {
-        const row = el("div", "row");
-        row.innerHTML = `
-          <div class="chip">${emojiFor(it.name, kind === "income" ? "💰" : "📄")}</div>
-          <div class="body"><p class="t">${esc(it.name)}</p><p class="s">Chaque mois${it.day ? ` · le ${it.day} (auto)` : " · Manuel"}</p></div>
-          <div class="amt ${kind === "income" ? "income" : "expense"} num">${kind === "income" ? "+" : "−"}${F.money(it.amount).replace("€", "").trim()} €</div>`;
-        row.addEventListener("click", () => openRecurringModal(kind, it));
-        list.appendChild(row);
-      });
-      sec.appendChild(list);
-    } else {
-      sec.appendChild(emptyState(kind === "income" ? "💰" : "📄", `Aucun ${kind === "income" ? "revenu" : "e dépense"} récurrent${kind === "income" ? "" : "e"}. Ajoute ${kind === "income" ? "ton salaire, une aide…" : "loyer, internet…"}`));
-    }
-    return sec;
   }
 
   /* ---------- helpers de section ---------- */
