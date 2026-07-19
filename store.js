@@ -596,13 +596,23 @@
       balance: running,
     });
 
+    // Un récurrent à jour fixe (mode auto) a une vraie date connue ce mois-ci ;
+    // un récurrent manuel n'en a pas (on ne sait pas quel jour il a été coché).
+    const parts = (m.label || "").trim().split(" ");
+    const mIdx = MONTHS_FR.indexOf(parts[0]);
+    const mYear = parseInt(parts[1], 10);
+    const dateForDay = (day) => {
+      if (day == null || mIdx === -1 || isNaN(mYear)) return null;
+      return `${mYear}-${String(mIdx + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    };
+
     // Récurrents "faits" + transactions, triés par date
     const items = [];
     m.incomes.filter((i) => i.done).forEach((i) =>
-      items.push({ date: null, label: i.name, delta: i.amount, kind: "recurring" })
+      items.push({ date: dateForDay(i.day), label: i.name, delta: i.amount, kind: "recurring" })
     );
     m.expenses.filter((e) => e.done).forEach((e) =>
-      items.push({ date: null, label: e.name, delta: -e.amount, kind: "recurring" })
+      items.push({ date: dateForDay(e.day), label: e.name, delta: -e.amount, kind: "recurring" })
     );
     m.transactions.forEach((t) =>
       items.push({

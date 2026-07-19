@@ -7,7 +7,7 @@
   let currentView = "home";
   let viewAll = false; // true = vue globale toutes périodes
   let ghEditToken = false; // true = affiche le champ token même s'il est déjà configuré
-  let settingsSubview = null; // null = liste racine, sinon "categories" | "recurring" | "backup"
+  let settingsSubview = null; // null = liste racine, sinon "categories" | "backup" | "balance"
 
   /* ---------- petits utilitaires DOM ---------- */
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -59,6 +59,7 @@
     updateHeader();
     if (currentView === "months") { renderMonths(); return; }
     if (currentView === "settings") { renderSettings(); return; }
+    if (currentView === "recurring") { renderRecurring(); return; }
     if (viewAll) {
       if (currentView === "home") renderHomeAll();
       else if (currentView === "history") renderHistoryAll();
@@ -127,7 +128,28 @@
     add.addEventListener("click", () => openTxModal(m.id));
     view.appendChild(add);
 
-    // Dépenses récurrentes à cocher
+    // Évolution jour par jour du mois consulté
+    const dailySec = dailyChartSection(monthDailySeries(m));
+    if (dailySec) view.appendChild(dailySec);
+
+    // Résumé par catégorie
+    renderCatSummary(m, view);
+  }
+
+  /* ---------- Récurrent ---------- */
+  // Le mois consulté à cocher (comme sur Accueil avant) + la gestion des
+  // modèles récurrents (comme dans Réglages avant), regroupés au même endroit.
+  function renderRecurring() {
+    const view = $("#view-recurring");
+    view.innerHTML = "";
+    const st = S.getState();
+    const m = S.currentMonth();
+
+    const head = el("div", "section-head");
+    head.style.marginTop = "4px";
+    head.innerHTML = `<h2 class="section-title">Ce mois-ci — ${esc(m.label)}</h2>`;
+    view.appendChild(head);
+
     if (m.expenses.length) {
       const sec = el("div", "section");
       sec.appendChild(sectionHead("Dépenses du mois", null));
@@ -144,13 +166,12 @@
       sec.appendChild(list);
       view.appendChild(sec);
     }
+    if (!m.expenses.length && !m.incomes.length) {
+      view.appendChild(emptyState("🔁", "Aucun récurrent ce mois-ci. Ajoutes-en un ci-dessous."));
+    }
 
-    // Évolution jour par jour du mois consulté
-    const dailySec = dailyChartSection(monthDailySeries(m));
-    if (dailySec) view.appendChild(dailySec);
-
-    // Résumé par catégorie
-    renderCatSummary(m, view);
+    view.appendChild(recurringSection("Revenus récurrents", "income", st.recurringIncomes));
+    view.appendChild(recurringSection("Dépenses récurrentes", "expense", st.recurringExpenses));
   }
 
   function recurringRow(m, kind, item) {
@@ -183,10 +204,11 @@
     return row;
   }
 
+  // Utilisé uniquement dans le drill-down d'une catégorie (renderCatSummary) :
+  // pas de puce d'icône, elle serait identique sur toutes les lignes de la liste.
   function txRow(m, t) {
     const row = el("div", "row");
     row.innerHTML = `
-      <div class="chip">${emojiFor(t.category, "💸")}</div>
       <div class="body">
         <p class="t">${esc(t.description || t.category)}</p>
         <p class="s">${esc(t.category)} · ${F.fullDate(t.date)}</p>
@@ -752,7 +774,6 @@
     const view = $("#view-settings");
     view.innerHTML = "";
     if (settingsSubview === "categories") return renderSettingsCategories(view);
-    if (settingsSubview === "recurring") return renderSettingsRecurring(view);
     if (settingsSubview === "backup") return renderSettingsBackup(view);
     if (settingsSubview === "balance") return renderSettingsBalance(view);
     renderSettingsRoot(view);
@@ -765,7 +786,6 @@
     nav.style.marginTop = "4px";
     const list = el("div", "list");
     list.appendChild(settingsNavRow("Catégories", () => { settingsSubview = "categories"; renderSettings(); }));
-    list.appendChild(settingsNavRow("Récurrents", () => { settingsSubview = "recurring"; renderSettings(); }));
     list.appendChild(settingsNavRow("Sauvegarde & données", () => { settingsSubview = "backup"; renderSettings(); }));
     list.appendChild(settingsNavRow("Solde de départ", () => { settingsSubview = "balance"; renderSettings(); }));
     nav.appendChild(list);
@@ -825,13 +845,6 @@
       catList.appendChild(row);
     });
     view.appendChild(catList);
-  }
-
-  function renderSettingsRecurring(view) {
-    const st = S.getState();
-    view.appendChild(subSettingsHead("Récurrents", null));
-    view.appendChild(recurringSection("Revenus récurrents", "income", st.recurringIncomes));
-    view.appendChild(recurringSection("Dépenses récurrentes", "expense", st.recurringExpenses));
   }
 
   function renderSettingsBackup(view) {

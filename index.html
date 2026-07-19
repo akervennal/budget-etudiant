@@ -27,15 +27,53 @@
   <main>
     <section id="view-home" class="view active"></section>
     <section id="view-history" class="view"></section>
+    <section id="view-recurring" class="view"></section>
     <section id="view-months" class="view"></section>
     <section id="view-settings" class="view"></section>
   </main>
 
   <nav class="tabbar">
-    <button class="tab active" data-view="home"><span class="ti">◎</span>Accueil</button>
-    <button class="tab" data-view="history"><span class="ti">≡</span>Historique</button>
-    <button class="tab" data-view="months"><span class="ti">◧</span>Mois</button>
-    <button class="tab" data-view="settings"><span class="ti">⚙</span>Réglages</button>
+    <button class="tab active" data-view="home">
+      <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1v-9.5z"/>
+        <path d="M9 21V13h6v8"/>
+      </svg>
+      Accueil
+    </button>
+    <button class="tab" data-view="history">
+      <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+      Historique
+    </button>
+    <button class="tab" data-view="recurring">
+      <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 2l4 4-4 4"/>
+        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+        <path d="M7 22l-4-4 4-4"/>
+        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+      </svg>
+      Récurrent
+    </button>
+    <button class="tab" data-view="months">
+      <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="17" rx="2"/>
+        <line x1="3" y1="9" x2="21" y2="9"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+      </svg>
+      Mois
+    </button>
+    <button class="tab" data-view="settings">
+      <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><circle cx="8" cy="6" r="2.5" fill="var(--bg)" stroke="currentColor" stroke-width="2"/>
+        <line x1="3" y1="12" x2="21" y2="12"/><circle cx="16" cy="12" r="2.5" fill="var(--bg)" stroke="currentColor" stroke-width="2"/>
+        <line x1="3" y1="18" x2="21" y2="18"/><circle cx="10" cy="18" r="2.5" fill="var(--bg)" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      Réglages
+    </button>
   </nav>
 
   <div class="modal-backdrop" id="modalBackdrop">
